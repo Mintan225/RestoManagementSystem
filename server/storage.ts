@@ -142,8 +142,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProduct(id: number): Promise<boolean> {
-    const result = await db.delete(products).where(eq(products.id, id));
-    return (result.rowCount ?? 0) > 0;
+    try {
+      // First check if the product exists
+      const [product] = await db.select().from(products).where(eq(products.id, id));
+      if (!product) {
+        return false;
+      }
+
+      // Check if product is used in any order items
+      const [orderItem] = await db.select().from(orderItems).where(eq(orderItems.productId, id));
+      if (orderItem) {
+        throw new Error("Cannot delete product that is used in orders");
+      }
+
+      // Delete the product
+      const result = await db.delete(products).where(eq(products.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      throw error;
+    }
   }
 
   // Tables
