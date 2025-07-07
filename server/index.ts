@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
@@ -36,7 +37,28 @@ app.use((req, res, next) => {
   next();
 });
 
+async function createDefaultAdmin() {
+  try {
+    // Check if admin user exists
+    const existingAdmin = await storage.getUserByUsername("admin");
+    if (!existingAdmin) {
+      // Create default admin user
+      await storage.createUser({
+        username: "admin",
+        password: "admin123", // Will be hashed by storage
+        role: "admin"
+      });
+      log("✓ Default admin user created: admin / admin123");
+    }
+  } catch (error) {
+    log("Error creating default admin: " + (error as Error).message);
+  }
+}
+
 (async () => {
+  // Create default admin user
+  await createDefaultAdmin();
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

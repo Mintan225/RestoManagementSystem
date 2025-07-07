@@ -37,9 +37,10 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
     credentials: "include",
   });
 
-  if (res.status === 401) {
+  if (res.status === 401 || res.status === 403) {
     // Token expired, clear auth and redirect to login
     authService.logout();
+    window.dispatchEvent(new CustomEvent('auth-error'));
     throw new Error("Session expired. Please login again.");
   }
 
