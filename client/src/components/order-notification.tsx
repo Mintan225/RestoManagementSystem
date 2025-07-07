@@ -73,7 +73,9 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
   if (!isVisible) return null;
 
   return (
-    <Card className="fixed top-4 right-4 z-50 w-96 shadow-lg border-l-4 border-l-primary animate-in slide-in-from-right">
+    <Card className={`fixed top-4 right-4 z-50 w-96 shadow-lg border-l-4 border-l-primary transition-all duration-300 ${
+        isAnimating ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'
+      }`}>
       <CardContent className="p-4">
         <div className="flex items-start space-x-3">
           <div className={`p-2 rounded-full ${statusInfo.color}`}>
@@ -97,10 +99,7 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>Total: {formatCurrency(parseFloat(order.total))}</span>
               <button
-                onClick={() => {
-                  setIsVisible(false);
-                  onClose?.();
-                }}
+                onClick={handleClose}
                 className="text-gray-400 hover:text-gray-600"
               >
                 ✕
@@ -117,6 +116,7 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
 export function useOrderNotifications(tableId?: number) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [lastOrderCount, setLastOrderCount] = useState(0);
+  const [lastOrderStatuses, setLastOrderStatuses] = useState<Map<number, string>>(new Map());
 
   useEffect(() => {
     if (!tableId) return;
@@ -124,26 +124,51 @@ export function useOrderNotifications(tableId?: number) {
     const checkForUpdates = async () => {
       try {
         const response = await fetch(`/api/menu/${tableId}`);
-        const data = await response.json();
+        if (!response.ok) return;
         
-        // Vérifier s'il y a de nouvelles commandes ou des mises à jour
+        const data = await response.json();
         const currentOrders = data.orders || [];
         
         // Vérifier les changements de statut des commandes existantes
         currentOrders.forEach((order: any) => {
-          // Trouver les commandes avec des changements de statut récents
-          if (order.status === "ready" || order.status === "preparing") {
-            const existingNotification = notifications.find(n => n.id === order.id);
-            if (!existingNotification) {
-              setNotifications(prev => [...prev, { ...order, timestamp: Date.now() }]);
-            }
+          const previousStatus = lastOrderStatuses.get(order.id);
+          
+          // Si le statut a changé vers "preparing" ou "ready"
+          if (previousStatus && previousStatus !== order.status && 
+              (order.status === "preparing" || order.status === "ready")) {
+            
+            const notificationId = `${order.id}-${order.status}-${Date.now()}`;
+            setNotifications(prev => {
+              // Éviter les doublons
+              const exists = prev.some(n => n.id === order.id && n.status === order.status);
+              if (!exists) {
+                return [...prev, { 
+                  ...order, 
+                  notificationId,
+                  timestamp: Date.now(),
+                  isStatusChange: true 
+                }];
+              }
+              return prev;
+            });
           }
+          
+          // Mettre à jour le statut dans notre cache
+          setLastOrderStatuses(prev => new Map(prev.set(order.id, order.status)));
         });
         
+        // Vérifier les nouvelles commandes
         if (currentOrders.length > lastOrderCount) {
-          // Nouvelle commande confirmée
-          const newOrder = currentOrders[currentOrders.length - 1];
-          setNotifications(prev => [...prev, { ...newOrder, isNew: true, timestamp: Date.now() }]);
+          const newOrders = currentOrders.slice(lastOrderCount);
+          newOrders.forEach((newOrder: any) => {
+            const notificationId = `${newOrder.id}-new-${Date.now()}`;
+            setNotifications(prev => [...prev, { 
+              ...newOrder, 
+              notificationId,
+              isNew: true, 
+              timestamp: Date.now() 
+            }]);
+          });
         }
         
         setLastOrderCount(currentOrders.length);
@@ -152,13 +177,16 @@ export function useOrderNotifications(tableId?: number) {
       }
     };
 
-    const interval = setInterval(checkForUpdates, 5000); // Vérifier toutes les 5 secondes
+    // Vérification initiale
+    checkForUpdates();
+    
+    const interval = setInterval(checkForUpdates, 8000); // Vérifier toutes les 8 secondes
 
     return () => clearInterval(interval);
-  }, [tableId, lastOrderCount]);
+  }, [tableId, lastOrderCount, lastOrderStatuses]);
 
-  const removeNotification = (index: number) => {
-    setNotifications(prev => prev.filter((_, i) => i !== index));
+  const removeNotification = (notificationId: string) => {
+    setNotifications(prev => prev.filter(n => n.notificationId !== notificationId));
   };
 
   return { notifications, removeNotification };

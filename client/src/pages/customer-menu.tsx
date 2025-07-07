@@ -43,7 +43,7 @@ export default function CustomerMenu() {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [lastOrderId, setLastOrderId] = useState<number | null>(null);
   const { toast } = useToast();
-  const { notifications, removeNotification } = useOrderNotifications(parseInt(tableNumber || "1"));
+  const { notifications, removeNotification } = useOrderNotifications(parseInt(tableNumber || "0"));
 
   const { data: menuData, isLoading } = useQuery({
     queryKey: [`/api/menu/${tableNumber}`],
@@ -451,11 +451,11 @@ export default function CustomerMenu() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Notifications */}
-      {notifications.map((notification, index) => (
+      {notifications.map((notification) => (
         <OrderNotification
-          key={`${notification.id}-${index}`}
+          key={notification.notificationId || `${notification.id}-${notification.timestamp}`}
           order={notification}
-          onClose={() => removeNotification(index)}
+          onClose={() => removeNotification(notification.notificationId)}
         />
       ))}
       
