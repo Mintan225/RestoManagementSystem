@@ -26,6 +26,7 @@ export const products = pgTable("products", {
   categoryId: integer("category_id").references(() => categories.id),
   imageUrl: text("image_url"),
   available: boolean("available").default(true).notNull(),
+  archived: boolean("archived").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

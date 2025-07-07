@@ -114,7 +114,9 @@ export class DatabaseStorage implements IStorage {
 
   // Products
   async getProducts(): Promise<Product[]> {
-    return await db.select().from(products).orderBy(products.name);
+    return await db.select().from(products)
+      .where(eq(products.archived, false))
+      .orderBy(products.name);
   }
 
   async getProductsByCategory(categoryId: number): Promise<Product[]> {
@@ -152,10 +154,15 @@ export class DatabaseStorage implements IStorage {
       // Check if product is used in any order items
       const [orderItem] = await db.select().from(orderItems).where(eq(orderItems.productId, id));
       if (orderItem) {
-        throw new Error("Cannot delete product that is used in orders");
+        // Instead of deleting, archive the product
+        const [archived] = await db.update(products)
+          .set({ archived: true, available: false })
+          .where(eq(products.id, id))
+          .returning();
+        return !!archived;
       }
 
-      // Delete the product
+      // If not used in orders, delete permanently
       const result = await db.delete(products).where(eq(products.id, id));
       return (result.rowCount ?? 0) > 0;
     } catch (error) {

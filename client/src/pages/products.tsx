@@ -45,15 +45,9 @@ export default function Products() {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
     },
     onError: (error: any) => {
-      let errorMessage = "Impossible de supprimer le produit";
-      
-      if (error.message && error.message.includes("used in orders")) {
-        errorMessage = "Impossible de supprimer un produit utilisé dans des commandes";
-      }
-      
       toast({
         title: "Erreur",
-        description: errorMessage,
+        description: "Impossible de supprimer le produit",
         variant: "destructive",
       });
     },
