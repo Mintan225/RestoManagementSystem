@@ -166,6 +166,11 @@ export const insertSaleSchema = createInsertSchema(sales).omit({
 export const insertExpenseSchema = createInsertSchema(expenses).omit({
   id: true,
   createdAt: true,
+}).extend({
+  amount: z.union([
+    z.string().transform((val) => val),
+    z.number().transform((val) => val.toString())
+  ])
 });
 
 // Types

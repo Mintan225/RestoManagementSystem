@@ -341,10 +341,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/expenses", authenticateToken, async (req, res) => {
     try {
-      // Convert string values to numbers for amount
+      // Convert number values to strings for amount (decimal fields expect strings)
       const requestBody = { ...req.body };
-      if (typeof requestBody.amount === 'string') {
-        requestBody.amount = parseFloat(requestBody.amount);
+      if (typeof requestBody.amount === 'number') {
+        requestBody.amount = requestBody.amount.toString();
       }
       
       const expenseData = insertExpenseSchema.parse(requestBody);
@@ -358,10 +358,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/expenses/:id", authenticateToken, async (req, res) => {
     try {
-      // Convert string values to numbers for amount
+      // Convert number values to strings for amount (decimal fields expect strings)
       const requestBody = { ...req.body };
-      if (typeof requestBody.amount === 'string') {
-        requestBody.amount = parseFloat(requestBody.amount);
+      if (typeof requestBody.amount === 'number') {
+        requestBody.amount = requestBody.amount.toString();
       }
       
       const expenseData = insertExpenseSchema.partial().parse(requestBody);

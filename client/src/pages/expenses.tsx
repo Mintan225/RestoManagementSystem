@@ -33,7 +33,7 @@ import { fr } from "date-fns/locale";
 
 const expenseFormSchema = z.object({
   description: z.string().min(1, "La description est requise"),
-  amount: z.string().min(1, "Le montant est requis").transform((val) => parseFloat(val)),
+  amount: z.string().min(1, "Le montant est requis"),
   category: z.string().min(1, "La catégorie est requise"),
   receiptUrl: z.string().optional(),
 });
