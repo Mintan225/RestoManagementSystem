@@ -629,11 +629,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const categories = await storage.getCategories();
       const products = await storage.getProducts();
+      
+      // Get recent orders for this table for notification tracking
+      const orders = await storage.getOrders();
+      const tableOrders = orders.filter(o => o.tableId === tableId);
 
       res.json({
         table,
         categories,
         products: products.filter(p => p.available),
+        orders: tableOrders,
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch menu" });

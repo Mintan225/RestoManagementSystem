@@ -20,6 +20,8 @@ export default function Orders() {
 
   const { data: allOrders = [], isLoading } = useQuery({
     queryKey: ["/api/orders"],
+    refetchInterval: 3000, // Mise à jour toutes les 3 secondes
+    refetchIntervalInBackground: true,
   });
 
   const deleteOrderMutation = useMutation({

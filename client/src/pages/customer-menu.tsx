@@ -4,6 +4,7 @@ import { useRoute } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/currency";
+import { OrderNotification, useOrderNotifications } from "@/components/order-notification";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,7 +41,9 @@ export default function CustomerMenu() {
   const [orderNotes, setOrderNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "orange_money" | "mtn_momo" | "moov_money" | "wave">("cash");
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [lastOrderId, setLastOrderId] = useState<number | null>(null);
   const { toast } = useToast();
+  const { notifications, removeNotification } = useOrderNotifications(parseInt(tableNumber || "1"));
 
   const { data: menuData, isLoading } = useQuery({
     queryKey: [`/api/menu/${tableNumber}`],
@@ -64,10 +67,11 @@ export default function CustomerMenu() {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setLastOrderId(data.id);
       toast({
         title: "Commande envoyée!",
-        description: "Votre commande a été transmise en cuisine. Merci!",
+        description: `Votre commande #${data.id} a été transmise en cuisine. Vous recevrez des notifications sur le statut.`,
       });
       setCart([]);
       setCustomerName("");
@@ -446,6 +450,15 @@ export default function CustomerMenu() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Notifications */}
+      {notifications.map((notification, index) => (
+        <OrderNotification
+          key={`${notification.id}-${index}`}
+          order={notification}
+          onClose={() => removeNotification(index)}
+        />
+      ))}
+      
       {/* Header */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="px-4 py-4">
