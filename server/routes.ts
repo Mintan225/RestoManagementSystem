@@ -124,7 +124,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const product = await storage.createProduct(productData);
       res.json(product);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create product" });
+      console.error("Error creating product:", error);
+      res.status(500).json({ message: "Failed to create product", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -181,7 +182,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const table = await storage.createTable(tableData);
       res.json(table);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create table" });
+      console.error("Error creating table:", error);
+      res.status(500).json({ message: "Failed to create table", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -324,7 +326,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expense = await storage.createExpense(expenseData);
       res.json(expense);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create expense" });
+      console.error("Error creating expense:", error);
+      res.status(500).json({ message: "Failed to create expense", error: error instanceof Error ? error.message : String(error) });
     }
   });
 

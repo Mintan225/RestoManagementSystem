@@ -33,9 +33,7 @@ export async function generateQRCode(
 }
 
 export function generateTableQRData(tableNumber: number, baseUrl?: string): string {
-  const domains = process.env.REPLIT_DOMAINS || '';
-  const domain = domains.split(',')[0] || window.location.origin;
-  const url = baseUrl || `${domain}/menu/${tableNumber}`;
+  const url = baseUrl || `${window.location.origin}/menu/${tableNumber}`;
   return url;
 }
 
