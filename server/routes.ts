@@ -120,7 +120,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/products", authenticateToken, async (req, res) => {
     try {
-      const productData = insertProductSchema.parse(req.body);
+      // Convert string values to numbers for price and categoryId
+      const requestBody = { ...req.body };
+      if (typeof requestBody.price === 'string') {
+        requestBody.price = parseFloat(requestBody.price);
+      }
+      if (typeof requestBody.categoryId === 'string') {
+        requestBody.categoryId = parseInt(requestBody.categoryId);
+      }
+      
+      const productData = insertProductSchema.parse(requestBody);
       const product = await storage.createProduct(productData);
       res.json(product);
     } catch (error) {
@@ -131,14 +140,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/products/:id", authenticateToken, async (req, res) => {
     try {
-      const productData = insertProductSchema.partial().parse(req.body);
+      // Convert string values to numbers for price and categoryId
+      const requestBody = { ...req.body };
+      if (typeof requestBody.price === 'string') {
+        requestBody.price = parseFloat(requestBody.price);
+      }
+      if (typeof requestBody.categoryId === 'string') {
+        requestBody.categoryId = parseInt(requestBody.categoryId);
+      }
+      
+      const productData = insertProductSchema.partial().parse(requestBody);
       const product = await storage.updateProduct(Number(req.params.id), productData);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
       res.json(product);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update product" });
+      console.error("Error updating product:", error);
+      res.status(500).json({ message: "Failed to update product", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -322,7 +341,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/expenses", authenticateToken, async (req, res) => {
     try {
-      const expenseData = insertExpenseSchema.parse(req.body);
+      // Convert string values to numbers for amount
+      const requestBody = { ...req.body };
+      if (typeof requestBody.amount === 'string') {
+        requestBody.amount = parseFloat(requestBody.amount);
+      }
+      
+      const expenseData = insertExpenseSchema.parse(requestBody);
       const expense = await storage.createExpense(expenseData);
       res.json(expense);
     } catch (error) {
@@ -333,14 +358,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/expenses/:id", authenticateToken, async (req, res) => {
     try {
-      const expenseData = insertExpenseSchema.partial().parse(req.body);
+      // Convert string values to numbers for amount
+      const requestBody = { ...req.body };
+      if (typeof requestBody.amount === 'string') {
+        requestBody.amount = parseFloat(requestBody.amount);
+      }
+      
+      const expenseData = insertExpenseSchema.partial().parse(requestBody);
       const expense = await storage.updateExpense(Number(req.params.id), expenseData);
       if (!expense) {
         return res.status(404).json({ message: "Expense not found" });
       }
       res.json(expense);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update expense" });
+      console.error("Error updating expense:", error);
+      res.status(500).json({ message: "Failed to update expense", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
