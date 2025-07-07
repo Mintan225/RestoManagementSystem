@@ -91,6 +91,10 @@ class AuthService {
     this.token = null;
     this.user = null;
     this.clearStorage();
+    // Rediriger vers la page de connexion
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   }
 
   getToken(): string | null {
