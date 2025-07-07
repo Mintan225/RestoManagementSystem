@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { authService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Edit, Trash2, Search, Package } from "lucide-react";
+import { formatCurrency } from "@/lib/currency";
 
 export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -131,7 +132,7 @@ export default function Products() {
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-xl font-bold text-primary">
-                    €{parseFloat(product.price).toFixed(2)}
+                    {formatCurrency(product.price)}
                   </span>
                   <div className="flex space-x-2">
                     <ProductForm

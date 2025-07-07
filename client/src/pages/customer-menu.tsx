@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/currency";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -145,7 +146,7 @@ export default function CustomerMenu() {
           {
             id: product.id,
             name: product.name,
-            price: parseFloat(product.price),
+            price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
             quantity: 1,
           },
         ];
@@ -482,7 +483,7 @@ export default function CustomerMenu() {
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold text-lg">{product.name}</h3>
                   <span className="text-lg font-bold text-primary">
-                    €{parseFloat(product.price).toFixed(2)}
+                    {formatCurrency(product.price)}
                   </span>
                 </div>
                 {product.description && (

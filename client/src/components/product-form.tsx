@@ -29,9 +29,12 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Plus } from "lucide-react";
 
-const productFormSchema = insertProductSchema.extend({
+const productFormSchema = z.object({
+  name: z.string().min(1, "Le nom est requis"),
+  description: z.string().optional(),
   price: z.string().min(1, "Le prix est requis").transform((val) => parseFloat(val)),
   categoryId: z.string().min(1, "La catégorie est requise").transform((val) => parseInt(val)),
+  available: z.boolean().default(true),
 });
 
 type ProductFormData = z.infer<typeof productFormSchema>;
