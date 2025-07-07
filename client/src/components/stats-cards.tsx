@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Euro, ShoppingCart, Users, TrendingUp } from "lucide-react";
+import { Banknote, ShoppingCart, Users, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 
 interface StatsCardsProps {
@@ -16,7 +16,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
     {
       title: "Ventes aujourd'hui",
       value: formatCurrency(stats.todaySales),
-      icon: Euro,
+      icon: Banknote,
       bgColor: "bg-success",
     },
     {

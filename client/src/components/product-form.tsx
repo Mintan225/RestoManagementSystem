@@ -190,7 +190,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="price">Prix (€)</Label>
+            <Label htmlFor="price">Prix (FCFA)</Label>
             <Input
               id="price"
               type="number"

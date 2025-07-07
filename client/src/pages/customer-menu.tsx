@@ -266,7 +266,7 @@ export default function CustomerMenu() {
                   <div className="flex-1">
                     <h3 className="font-medium">{item.name}</h3>
                     <p className="text-sm text-gray-600">
-                      €{item.price.toFixed(2)} × {item.quantity}
+                      {formatCurrency(item.price)} × {item.quantity}
                     </p>
                     <div className="mt-2">
                       <Input
@@ -299,7 +299,7 @@ export default function CustomerMenu() {
               <div className="pt-4 border-t">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total:</span>
-                  <span>€{getTotalPrice().toFixed(2)}</span>
+                  <span>{formatCurrency(getTotalPrice())}</span>
                 </div>
               </div>
             </CardContent>
@@ -396,7 +396,7 @@ export default function CustomerMenu() {
             ) : (
               <>
                 <CheckCircle className="h-5 w-5 mr-2" />
-                Confirmer la commande (€{getTotalPrice().toFixed(2)})
+                Confirmer la commande ({formatCurrency(getTotalPrice())})
               </>
             )}
           </Button>

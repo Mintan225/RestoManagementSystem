@@ -3,6 +3,7 @@ import { StatsCards } from "@/components/stats-cards";
 import { OrderItem } from "@/components/order-item";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/currency";
 import { Plus, Package, ShoppingCart, QrCode, Receipt } from "lucide-react";
 import { Link } from "wouter";
 
@@ -123,7 +124,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-gray-900">
-                        €{parseFloat(order.total).toFixed(2)}
+                        {formatCurrency(order.total)}
                       </p>
                       <p className="text-sm text-gray-500">{order.status}</p>
                     </div>
@@ -162,7 +163,7 @@ export default function Dashboard() {
                     ></div>
                   </div>
                   <div className="w-16 text-sm text-gray-900 text-right">
-                    €{data.sales.toLocaleString()}
+                    {formatCurrency(data.sales)}
                   </div>
                 </div>
               ))}

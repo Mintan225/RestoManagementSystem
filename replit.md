@@ -92,6 +92,10 @@ The system supports both development and production environments with proper env
 ```
 Changelog:
 - July 07, 2025. Initial setup
+- July 07, 2025. Integrated CFA franc (FCFA) as currency throughout the application
+- July 07, 2025. Fixed validation schemas for products, expenses, and sales
+- July 07, 2025. Added manual sales entry functionality
+- July 07, 2025. Resolved authentication and form submission issues
 ```
 
 ## User Preferences

@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertExpenseSchema } from "@shared/schema";
 import { authService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/currency";
 import { z } from "zod";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -195,7 +196,7 @@ function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Montant (€)</Label>
+            <Label htmlFor="amount">Montant (FCFA)</Label>
             <Input
               id="amount"
               type="number"
@@ -479,7 +480,7 @@ export default function Expenses() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total des dépenses</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  €{totalExpenses.toFixed(2)}
+                  {formatCurrency(totalExpenses)}
                 </p>
               </div>
             </div>
@@ -515,7 +516,7 @@ export default function Expenses() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Moyenne par dépense</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  €{filteredExpenses.length > 0 ? (totalExpenses / filteredExpenses.length).toFixed(2) : "0.00"}
+                  {formatCurrency(filteredExpenses.length > 0 ? (totalExpenses / filteredExpenses.length) : 0)}
                 </p>
               </div>
             </div>
@@ -537,7 +538,7 @@ export default function Expenses() {
                     <div className={`w-3 h-3 ${getCategoryColor(category)} rounded-full`}></div>
                     <span className="text-sm font-medium">{category}</span>
                   </div>
-                  <span className="font-semibold">€{(amount as number).toFixed(2)}</span>
+                  <span className="font-semibold">{formatCurrency(amount as number)}</span>
                 </div>
               ))}
             </div>
@@ -575,7 +576,7 @@ export default function Expenses() {
                       </Badge>
                     </div>
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>€{parseFloat(expense.amount).toFixed(2)}</span>
+                      <span>{formatCurrency(parseFloat(expense.amount))}</span>
                       <span>
                         {format(new Date(expense.createdAt), "dd/MM/yyyy HH:mm", { locale: fr })}
                       </span>

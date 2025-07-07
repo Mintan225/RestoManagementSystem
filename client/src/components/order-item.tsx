@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/currency";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -92,7 +93,7 @@ export function OrderItem({ order }: OrderItemProps) {
             </Badge>
           </div>
           <div className="text-right">
-            <p className="font-semibold">€{parseFloat(order.total).toFixed(2)}</p>
+            <p className="font-semibold">{formatCurrency(order.total)}</p>
             <p className="text-sm text-gray-500">
               {format(new Date(order.createdAt), "HH:mm", { locale: fr })}
             </p>

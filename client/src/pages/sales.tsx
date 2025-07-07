@@ -333,7 +333,7 @@ export default function Sales() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total des ventes</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  €{totalSales.toFixed(2)}
+                  {formatCurrency(totalSales)}
                 </p>
               </div>
             </div>
@@ -351,7 +351,7 @@ export default function Sales() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Espèces</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  €{cashSales.toFixed(2)}
+                  {formatCurrency(cashSales)}
                 </p>
               </div>
             </div>
@@ -369,7 +369,7 @@ export default function Sales() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Mobile Money</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  €{mobileMoneySales.toFixed(2)}
+                  {formatCurrency(mobileMoneySales)}
                 </p>
               </div>
             </div>
@@ -421,7 +421,7 @@ export default function Sales() {
                     <div className="flex items-center space-x-3">
                       <div>
                         <p className="font-medium text-gray-900">
-                          €{parseFloat(sale.amount).toFixed(2)}
+                          {formatCurrency(parseFloat(sale.amount))}
                         </p>
                         <p className="text-sm text-gray-500">
                           {format(new Date(sale.createdAt), "dd/MM/yyyy HH:mm", { locale: fr })}
