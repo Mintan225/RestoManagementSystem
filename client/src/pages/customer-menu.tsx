@@ -354,32 +354,71 @@ export default function CustomerMenu() {
               <CardTitle>Méthode de paiement</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                {/* Cash Payment */}
                 <Button
                   variant={paymentMethod === "cash" ? "default" : "outline"}
                   onClick={() => setPaymentMethod("cash")}
-                  className="h-16 flex-col"
+                  className="w-full h-16 flex items-center justify-start px-6"
                 >
-                  <CreditCard className="h-6 w-6 mb-1" />
-                  <span>Espèces</span>
+                  <CreditCard className="h-6 w-6 mr-4" />
+                  <span className="text-lg">Paiement en espèces</span>
                 </Button>
-                <Button
-                  variant={paymentMethod === "mobile_money" ? "default" : "outline"}
-                  onClick={() => setPaymentMethod("mobile_money")}
-                  className="h-16 flex-col"
-                >
-                  <Smartphone className="h-6 w-6 mb-1" />
-                  <span>Mobile Money</span>
-                </Button>
+                
+                {/* Mobile Money Options */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-gray-700">Mobile Money</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant={paymentMethod === "orange_money" ? "default" : "outline"}
+                      onClick={() => setPaymentMethod("orange_money")}
+                      className="h-14 flex-col"
+                    >
+                      <Smartphone className="h-5 w-5 mb-1" />
+                      <span className="text-sm">Orange Money</span>
+                    </Button>
+                    <Button
+                      variant={paymentMethod === "mtn_momo" ? "default" : "outline"}
+                      onClick={() => setPaymentMethod("mtn_momo")}
+                      className="h-14 flex-col"
+                    >
+                      <Smartphone className="h-5 w-5 mb-1" />
+                      <span className="text-sm">MTN MoMo</span>
+                    </Button>
+                    <Button
+                      variant={paymentMethod === "moov_money" ? "default" : "outline"}
+                      onClick={() => setPaymentMethod("moov_money")}
+                      className="h-14 flex-col"
+                    >
+                      <Smartphone className="h-5 w-5 mb-1" />
+                      <span className="text-sm">Moov Money</span>
+                    </Button>
+                    <Button
+                      variant={paymentMethod === "wave" ? "default" : "outline"}
+                      onClick={() => setPaymentMethod("wave")}
+                      className="h-14 flex-col"
+                    >
+                      <Smartphone className="h-5 w-5 mb-1" />
+                      <span className="text-sm">Wave</span>
+                    </Button>
+                  </div>
+                </div>
               </div>
+              
+              {/* Payment Info */}
               {paymentMethod === "cash" && (
-                <p className="text-sm text-gray-600 mt-2">
-                  Vous paierez à la livraison de votre commande.
+                <p className="text-sm text-gray-600 mt-4">
+                  Vous paierez en espèces à la livraison de votre commande.
                 </p>
               )}
-              {paymentMethod === "mobile_money" && (
-                <p className="text-sm text-gray-600 mt-2">
-                  Le paiement sera traité immédiatement via Mobile Money.
+              {paymentMethod !== "cash" && paymentMethod !== "mobile_money" && (
+                <p className="text-sm text-gray-600 mt-4">
+                  Le paiement sera traité via {
+                    paymentMethod === "orange_money" ? "Orange Money" :
+                    paymentMethod === "mtn_momo" ? "MTN Mobile Money" :
+                    paymentMethod === "moov_money" ? "Moov Money" :
+                    paymentMethod === "wave" ? "Wave" : "Mobile Money"
+                  }.
                 </p>
               )}
             </CardContent>

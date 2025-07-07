@@ -117,7 +117,10 @@ function SaleForm({ onSuccess }: { onSuccess?: () => void }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="cash">Espèces</SelectItem>
-                <SelectItem value="mobile_money">Mobile Money</SelectItem>
+                <SelectItem value="orange_money">Orange Money</SelectItem>
+                <SelectItem value="mtn_momo">MTN Mobile Money</SelectItem>
+                <SelectItem value="moov_money">Moov Money</SelectItem>
+                <SelectItem value="wave">Wave</SelectItem>
               </SelectContent>
             </Select>
             {form.formState.errors.paymentMethod && (

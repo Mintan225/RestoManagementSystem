@@ -250,13 +250,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrder(order: InsertOrder): Promise<Order> {
-    const [newOrder] = await db.insert(orders).values(order).returning();
+    // Ensure total is provided
+    const orderWithTotal = {
+      ...order,
+      total: order.total || "0.00"
+    };
+    const [newOrder] = await db.insert(orders).values(orderWithTotal).returning();
     return newOrder;
   }
 
   async updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined> {
+    // Ensure total is provided for updates, filtering out undefined values
+    const updateData = Object.fromEntries(
+      Object.entries(order).filter(([_, value]) => value !== undefined)
+    );
+    
     const [updated] = await db.update(orders)
-      .set(order)
+      .set(updateData)
       .where(eq(orders.id, id))
       .returning();
     return updated || undefined;

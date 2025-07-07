@@ -158,6 +158,8 @@ export const insertOrderSchema = createInsertSchema(orders).omit({
   id: true,
   createdAt: true,
   completedAt: true,
+}).extend({
+  total: z.string().optional(),
 });
 
 export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
