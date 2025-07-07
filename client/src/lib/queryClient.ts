@@ -1,4 +1,4 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { authService } from "./auth";
 
 async function throwIfResNotOk(res: Response) {
@@ -29,31 +29,26 @@ export async function apiRequest(
   return res;
 }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    const authHeaders = authService.getAuthHeaders();
-    
-    const res = await fetch(queryKey[0] as string, {
-      headers: authHeaders,
-      credentials: "include",
-    });
+const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) => {
+  const authHeaders = authService.getAuthHeaders();
+  
+  const res = await fetch(queryKey[0] as string, {
+    headers: authHeaders,
+    credentials: "include",
+  });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
+  if (res.status === 401) {
+    throw new Error("Unauthorized");
+  }
 
-    await throwIfResNotOk(res);
-    return await res.json();
-  };
+  await throwIfResNotOk(res);
+  return await res.json();
+};
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: defaultQueryFn,
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
