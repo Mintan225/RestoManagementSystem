@@ -7,6 +7,8 @@ import { authService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { downloadReceipt, type ReceiptData } from "@/lib/receipt-generator";
+import { Download } from "lucide-react";
 
 interface OrderItemProps {
   order: {
@@ -88,6 +90,51 @@ export function OrderItem({ order }: OrderItemProps) {
     updateOrderMutation.mutate({ status: newStatus });
   };
 
+  const handleDownloadReceipt = () => {
+    if (!order.orderItems || order.orderItems.length === 0) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le reçu : aucun produit commandé",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const receiptData: ReceiptData = {
+      orderId: order.id,
+      customerName: order.customerName || 'Client',
+      customerPhone: order.customerPhone,
+      tableNumber: order.tableId,
+      items: order.orderItems.map(item => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        price: parseFloat(item.price),
+        total: parseFloat(item.price) * item.quantity
+      })),
+      subtotal: parseFloat(order.total),
+      total: parseFloat(order.total),
+      paymentMethod: order.paymentMethod || 'Espèces',
+      paymentDate: format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr }),
+      restaurantName: 'Mon Restaurant',
+      restaurantAddress: 'Adresse du restaurant',
+      restaurantPhone: '+225 XX XX XX XX'
+    };
+
+    try {
+      downloadReceipt(receiptData);
+      toast({
+        title: "Succès",
+        description: "Reçu téléchargé avec succès",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le reçu",
+        variant: "destructive",
+      });
+    }
+  };
+
   const statusInfo = statusConfig[order.status as keyof typeof statusConfig];
   const paymentInfo = paymentStatusConfig[order.paymentStatus as keyof typeof paymentStatusConfig];
 
@@ -165,45 +212,60 @@ export function OrderItem({ order }: OrderItemProps) {
           </div>
         )}
 
-        {order.status !== "completed" && order.status !== "cancelled" && (
-          <div className="flex space-x-2">
-            {order.status === "pending" && (
+        <div className="flex flex-wrap gap-2 items-center justify-between">
+          {order.status !== "completed" && order.status !== "cancelled" && (
+            <div className="flex space-x-2">
+              {order.status === "pending" && (
+                <Button
+                  size="sm"
+                  onClick={() => handleStatusChange("preparing")}
+                  disabled={updateOrderMutation.isPending}
+                >
+                  Commencer préparation
+                </Button>
+              )}
+              {order.status === "preparing" && (
+                <Button
+                  size="sm"
+                  onClick={() => handleStatusChange("ready")}
+                  disabled={updateOrderMutation.isPending}
+                >
+                  Marquer comme prêt
+                </Button>
+              )}
+              {order.status === "ready" && (
+                <Button
+                  size="sm"
+                  onClick={() => handleStatusChange("completed")}
+                  disabled={updateOrderMutation.isPending}
+                >
+                  Terminer
+                </Button>
+              )}
               <Button
                 size="sm"
-                onClick={() => handleStatusChange("preparing")}
+                variant="destructive"
+                onClick={() => handleStatusChange("cancelled")}
                 disabled={updateOrderMutation.isPending}
               >
-                Commencer préparation
+                Annuler
               </Button>
-            )}
-            {order.status === "preparing" && (
-              <Button
-                size="sm"
-                onClick={() => handleStatusChange("ready")}
-                disabled={updateOrderMutation.isPending}
-              >
-                Marquer comme prêt
-              </Button>
-            )}
-            {order.status === "ready" && (
-              <Button
-                size="sm"
-                onClick={() => handleStatusChange("completed")}
-                disabled={updateOrderMutation.isPending}
-              >
-                Terminer
-              </Button>
-            )}
+            </div>
+          )}
+          
+          {/* Bouton de téléchargement du reçu - disponible pour toutes les commandes payées */}
+          {order.paymentStatus === "paid" && (
             <Button
               size="sm"
-              variant="destructive"
-              onClick={() => handleStatusChange("cancelled")}
-              disabled={updateOrderMutation.isPending}
+              variant="outline"
+              onClick={handleDownloadReceipt}
+              className="flex items-center gap-1"
             >
-              Annuler
+              <Download className="h-4 w-4" />
+              Télécharger reçu
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );

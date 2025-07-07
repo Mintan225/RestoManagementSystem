@@ -1,13 +1,12 @@
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { eq } from "drizzle-orm";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { insertUserSchema, insertCategorySchema, insertProductSchema, insertTableSchema, insertOrderSchema, insertOrderItemSchema, insertSaleSchema, insertExpenseSchema } from "@shared/schema";
+import { storage } from "./storage";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { insertUserSchema, insertProductSchema, insertCategorySchema, insertTableSchema, insertOrderSchema, insertOrderItemSchema, insertSaleSchema, insertExpenseSchema } from "@shared/schema";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-// Middleware for authentication
 function authenticateToken(req: any, res: any, next: any) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -16,15 +15,51 @@ function authenticateToken(req: any, res: any, next: any) {
     return res.status(401).json({ message: 'Access token required' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) return res.status(403).json({ message: 'Invalid token' });
-    req.user = user;
+  jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret', (err: any, decoded: any) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+    req.user = decoded;
     next();
   });
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const userData = insertUserSchema.parse({
+        username,
+        password: hashedPassword,
+        role: 'admin'
+      });
+
+      const user = await storage.createUser(userData);
+      const token = jwt.sign(
+        { id: user.id, username: user.username, role: user.role },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '24h' }
+      );
+
+      res.json({
+        token,
+        user: { id: user.id, username: user.username, role: user.role }
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Failed to register user" });
+    }
+  });
+
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
@@ -34,37 +69,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) {
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
-      res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
-    } catch (error) {
-      res.status(500).json({ message: "Server error" });
-    }
-  });
+      const token = jwt.sign(
+        { id: user.id, username: user.username, role: user.role },
+        process.env.JWT_SECRET || 'fallback-secret',
+        { expiresIn: '24h' }
+      );
 
-  app.post("/api/auth/register", async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
-      const user = await storage.createUser({
-        ...userData,
-        password: hashedPassword,
+      res.json({
+        token,
+        user: { id: user.id, username: user.username, role: user.role }
       });
-
-      const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
-      res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Failed to login" });
     }
   });
 
@@ -84,7 +106,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const category = await storage.createCategory(categoryData);
       res.json(category);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create category" });
+      console.error("Error creating category:", error);
+      res.status(500).json({ message: "Failed to create category", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  app.put("/api/categories/:id", authenticateToken, async (req, res) => {
+    try {
+      const categoryData = insertCategorySchema.partial().parse(req.body);
+      const category = await storage.updateCategory(Number(req.params.id), categoryData);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update category" });
+    }
+  });
+
+  app.delete("/api/categories/:id", authenticateToken, async (req, res) => {
+    try {
+      const success = await storage.deleteCategory(Number(req.params.id));
+      if (!success) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      res.json({ message: "Category deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete category" });
     }
   });
 
@@ -120,16 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/products", authenticateToken, async (req, res) => {
     try {
-      // Convert number values to strings for price (decimal fields expect strings)
-      const requestBody = { ...req.body };
-      if (typeof requestBody.price === 'number') {
-        requestBody.price = requestBody.price.toString();
-      }
-      if (typeof requestBody.categoryId === 'string') {
-        requestBody.categoryId = parseInt(requestBody.categoryId);
-      }
-      
-      const productData = insertProductSchema.parse(requestBody);
+      const productData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(productData);
       res.json(product);
     } catch (error) {
@@ -140,16 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/products/:id", authenticateToken, async (req, res) => {
     try {
-      // Convert number values to strings for price (decimal fields expect strings)
-      const requestBody = { ...req.body };
-      if (typeof requestBody.price === 'number') {
-        requestBody.price = requestBody.price.toString();
-      }
-      if (typeof requestBody.categoryId === 'string') {
-        requestBody.categoryId = parseInt(requestBody.categoryId);
-      }
-      
-      const productData = insertProductSchema.partial().parse(requestBody);
+      const productData = insertProductSchema.partial().parse(req.body);
       const product = await storage.updateProduct(Number(req.params.id), productData);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
@@ -261,32 +291,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/orders", async (req, res) => {
     try {
-      const { orderData, items } = req.body;
-      
-      // Create order
+      const orderData = insertOrderSchema.parse(req.body);
       const order = await storage.createOrder(orderData);
-      
-      // Create order items
-      for (const item of items) {
-        await storage.createOrderItem({
-          ...item,
-          orderId: order.id,
-        });
-      }
-      
-      // Create sale record if payment is completed
-      if (orderData.paymentStatus === 'paid') {
-        await storage.createSale({
-          orderId: order.id,
-          amount: orderData.total,
-          paymentMethod: orderData.paymentMethod,
-          description: `Order #${order.id}`,
-        });
-      }
-      
       res.json(order);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create order" });
+      console.error("Error creating order:", error);
+      res.status(500).json({ message: "Failed to create order", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -297,24 +307,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
+      
+      // Si le statut est "completed" et le paiement est "paid", générer automatiquement une vente
+      if (orderData.status === 'completed' && order.paymentStatus === 'paid') {
+        try {
+          const orderWithItems = await storage.getOrderWithItems(order.id);
+          if (orderWithItems) {
+            await storage.createSale({
+              orderId: order.id,
+              amount: order.total,
+              paymentMethod: order.paymentMethod || 'cash',
+              description: `Commande #${order.id} - ${orderWithItems.orderItems.map(item => item.product.name).join(', ')}`
+            });
+          }
+        } catch (saleError) {
+          console.error('Error creating sale for completed order:', saleError);
+        }
+      }
+      
       res.json(order);
     } catch (error) {
       res.status(500).json({ message: "Failed to update order" });
     }
   });
 
+  // Route pour générer et télécharger un reçu
+  app.get("/api/orders/:id/receipt", async (req, res) => {
+    try {
+      const orderId = Number(req.params.id);
+      const orderWithItems = await storage.getOrderWithItems(orderId);
+      
+      if (!orderWithItems) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      // Vérifier que la commande est payée
+      if (orderWithItems.paymentStatus !== 'paid') {
+        return res.status(400).json({ message: "Order is not paid yet" });
+      }
+      
+      const receiptData = {
+        orderId: orderWithItems.id,
+        customerName: orderWithItems.customerName || 'Client',
+        customerPhone: orderWithItems.customerPhone,
+        tableNumber: orderWithItems.tableId,
+        items: orderWithItems.orderItems.map((item: any) => ({
+          name: item.product.name,
+          quantity: item.quantity,
+          price: parseFloat(item.price),
+          total: parseFloat(item.price) * item.quantity
+        })),
+        subtotal: parseFloat(orderWithItems.total),
+        total: parseFloat(orderWithItems.total),
+        paymentMethod: orderWithItems.paymentMethod || 'Espèces',
+        paymentDate: orderWithItems.createdAt,
+        restaurantName: 'Mon Restaurant',
+        restaurantAddress: 'Adresse du restaurant', 
+        restaurantPhone: '+225 XX XX XX XX'
+      };
+      
+      res.json(receiptData);
+    } catch (error) {
+      console.error("Error generating receipt:", error);
+      res.status(500).json({ message: "Failed to generate receipt" });
+    }
+  });
+
+  // Order Items routes
+  app.post("/api/order-items", async (req, res) => {
+    try {
+      const orderItemData = insertOrderItemSchema.parse(req.body);
+      const orderItem = await storage.createOrderItem(orderItemData);
+      res.json(orderItem);
+    } catch (error) {
+      console.error("Error creating order item:", error);
+      res.status(500).json({ message: "Failed to create order item", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
   // Sales routes
   app.get("/api/sales", authenticateToken, async (req, res) => {
     try {
-      const { startDate, endDate } = req.query;
-      let sales;
-      
-      if (startDate && endDate) {
-        sales = await storage.getSalesByDateRange(new Date(startDate as string), new Date(endDate as string));
-      } else {
-        sales = await storage.getSales();
-      }
-      
+      const sales = await storage.getSales();
       res.json(sales);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch sales" });
@@ -323,13 +397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/sales", authenticateToken, async (req, res) => {
     try {
-      // Convert number values to strings for amount (decimal fields expect strings)
-      const requestBody = { ...req.body };
-      if (typeof requestBody.amount === 'number') {
-        requestBody.amount = requestBody.amount.toString();
-      }
-      
-      const saleData = insertSaleSchema.parse(requestBody);
+      const saleData = insertSaleSchema.parse(req.body);
       const sale = await storage.createSale(saleData);
       res.json(sale);
     } catch (error) {
@@ -341,15 +409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Expenses routes
   app.get("/api/expenses", authenticateToken, async (req, res) => {
     try {
-      const { startDate, endDate } = req.query;
-      let expenses;
-      
-      if (startDate && endDate) {
-        expenses = await storage.getExpensesByDateRange(new Date(startDate as string), new Date(endDate as string));
-      } else {
-        expenses = await storage.getExpenses();
-      }
-      
+      const expenses = await storage.getExpenses();
       res.json(expenses);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch expenses" });
@@ -358,13 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/expenses", authenticateToken, async (req, res) => {
     try {
-      // Convert number values to strings for amount (decimal fields expect strings)
-      const requestBody = { ...req.body };
-      if (typeof requestBody.amount === 'number') {
-        requestBody.amount = requestBody.amount.toString();
-      }
-      
-      const expenseData = insertExpenseSchema.parse(requestBody);
+      const expenseData = insertExpenseSchema.parse(req.body);
       const expense = await storage.createExpense(expenseData);
       res.json(expense);
     } catch (error) {
@@ -375,21 +429,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/expenses/:id", authenticateToken, async (req, res) => {
     try {
-      // Convert number values to strings for amount (decimal fields expect strings)
-      const requestBody = { ...req.body };
-      if (typeof requestBody.amount === 'number') {
-        requestBody.amount = requestBody.amount.toString();
-      }
-      
-      const expenseData = insertExpenseSchema.partial().parse(requestBody);
+      const expenseData = insertExpenseSchema.partial().parse(req.body);
       const expense = await storage.updateExpense(Number(req.params.id), expenseData);
       if (!expense) {
         return res.status(404).json({ message: "Expense not found" });
       }
       res.json(expense);
     } catch (error) {
-      console.error("Error updating expense:", error);
-      res.status(500).json({ message: "Failed to update expense", error: error instanceof Error ? error.message : String(error) });
+      res.status(500).json({ message: "Failed to update expense" });
     }
   });
 
@@ -408,27 +455,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics routes
   app.get("/api/analytics/daily", authenticateToken, async (req, res) => {
     try {
-      const { date } = req.query;
-      const targetDate = date ? new Date(date as string) : new Date();
-      const stats = await storage.getDailyStats(targetDate);
+      const today = new Date();
+      const stats = await storage.getDailyStats(today);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch daily stats" });
     }
   });
 
-  // Customer menu route (public access via QR code)
-  app.get("/api/menu/:tableNumber", async (req, res) => {
+  // Menu routes (public, no auth required)
+  app.get("/api/menu/:tableId", async (req, res) => {
     try {
-      const table = await storage.getTableByNumber(Number(req.params.tableNumber));
+      const tableId = Number(req.params.tableId);
+      const table = await storage.getTable(tableId);
+      
       if (!table) {
         return res.status(404).json({ message: "Table not found" });
       }
 
       const categories = await storage.getCategories();
       const products = await storage.getProducts();
-      
-      res.json({ table, categories, products: products.filter(p => p.available) });
+
+      res.json({
+        table,
+        categories,
+        products: products.filter(p => p.available),
+      });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch menu" });
     }
