@@ -16,6 +16,7 @@ import QRCodes from "@/pages/qr-codes";
 import Sales from "@/pages/sales";
 import Expenses from "@/pages/expenses";
 import Settings from "@/pages/settings";
+import Archives from "@/pages/archives";
 import CustomerMenu from "@/pages/customer-menu";
 import NotFound from "@/pages/not-found";
 
@@ -146,6 +147,12 @@ function Router() {
       <Route path="/expenses">
         <ProtectedRoute>
           <Expenses />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/archives">
+        <ProtectedRoute>
+          <Archives />
         </ProtectedRoute>
       </Route>
       

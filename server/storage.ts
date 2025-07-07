@@ -6,7 +6,7 @@ import {
   type Sale, type InsertSale, type Expense, type InsertExpense
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lte, sum, ne } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sum, ne, isNull, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -39,6 +39,7 @@ export interface IStorage {
   // Orders
   getOrders(): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] })[]>;
   getActiveOrders(): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] })[]>;
+  getDeletedOrders(): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] })[]>;
   getOrder(id: number): Promise<Order | undefined>;
   getOrderWithItems(id: number): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] }) | undefined>;
   createOrder(order: InsertOrder): Promise<Order>;
@@ -53,12 +54,14 @@ export interface IStorage {
 
   // Sales
   getSales(): Promise<Sale[]>;
+  getDeletedSales(): Promise<Sale[]>;
   getSalesByDateRange(startDate: Date, endDate: Date): Promise<Sale[]>;
   createSale(sale: InsertSale): Promise<Sale>;
   deleteSale(id: number): Promise<boolean>;
 
   // Expenses
   getExpenses(): Promise<Expense[]>;
+  getDeletedExpenses(): Promise<Expense[]>;
   getExpensesByDateRange(startDate: Date, endDate: Date): Promise<Expense[]>;
   createExpense(expense: InsertExpense): Promise<Expense>;
   updateExpense(id: number, expense: Partial<InsertExpense>): Promise<Expense | undefined>;
@@ -207,7 +210,24 @@ export class DatabaseStorage implements IStorage {
 
   // Orders
   async getOrders(): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] })[]> {
-    const ordersData = await db.select().from(orders).orderBy(desc(orders.createdAt));
+    const ordersData = await db.select().from(orders)
+      .where(isNull(orders.deletedAt))
+      .orderBy(desc(orders.createdAt));
+    
+    const ordersWithItems = await Promise.all(
+      ordersData.map(async (order) => {
+        const items = await this.getOrderItems(order.id);
+        return { ...order, orderItems: items };
+      })
+    );
+    
+    return ordersWithItems;
+  }
+
+  async getDeletedOrders(): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] })[]> {
+    const ordersData = await db.select().from(orders)
+      .where(isNotNull(orders.deletedAt))
+      .orderBy(desc(orders.deletedAt));
     
     const ordersWithItems = await Promise.all(
       ordersData.map(async (order) => {
@@ -274,9 +294,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteOrder(id: number): Promise<boolean> {
-    // Delete order items first
-    await db.delete(orderItems).where(eq(orderItems.orderId, id));
-    const result = await db.delete(orders).where(eq(orders.id, id));
+    const result = await db.update(orders)
+      .set({ deletedAt: new Date() })
+      .where(eq(orders.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -317,7 +337,15 @@ export class DatabaseStorage implements IStorage {
 
   // Sales
   async getSales(): Promise<Sale[]> {
-    return await db.select().from(sales).orderBy(desc(sales.createdAt));
+    return await db.select().from(sales)
+      .where(isNull(sales.deletedAt))
+      .orderBy(desc(sales.createdAt));
+  }
+
+  async getDeletedSales(): Promise<Sale[]> {
+    return await db.select().from(sales)
+      .where(isNotNull(sales.deletedAt))
+      .orderBy(desc(sales.deletedAt));
   }
 
   async getSalesByDateRange(startDate: Date, endDate: Date): Promise<Sale[]> {
@@ -335,13 +363,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSale(id: number): Promise<boolean> {
-    const result = await db.delete(sales).where(eq(sales.id, id));
+    const result = await db.update(sales)
+      .set({ deletedAt: new Date() })
+      .where(eq(sales.id, id));
     return (result.rowCount || 0) > 0;
   }
 
   // Expenses
   async getExpenses(): Promise<Expense[]> {
-    return await db.select().from(expenses).orderBy(desc(expenses.createdAt));
+    return await db.select().from(expenses)
+      .where(isNull(expenses.deletedAt))
+      .orderBy(desc(expenses.createdAt));
+  }
+
+  async getDeletedExpenses(): Promise<Expense[]> {
+    return await db.select().from(expenses)
+      .where(isNotNull(expenses.deletedAt))
+      .orderBy(desc(expenses.deletedAt));
   }
 
   async getExpensesByDateRange(startDate: Date, endDate: Date): Promise<Expense[]> {
@@ -367,7 +405,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteExpense(id: number): Promise<boolean> {
-    const result = await db.delete(expenses).where(eq(expenses.id, id));
+    const result = await db.update(expenses)
+      .set({ deletedAt: new Date() })
+      .where(eq(expenses.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 

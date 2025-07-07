@@ -51,6 +51,7 @@ export const orders = pgTable("orders", {
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const orderItems = pgTable("order_items", {
@@ -69,6 +70,7 @@ export const sales = pgTable("sales", {
   paymentMethod: text("payment_method").notNull(),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const expenses = pgTable("expenses", {
@@ -78,6 +80,7 @@ export const expenses = pgTable("expenses", {
   category: text("category").notNull(),
   receiptUrl: text("receipt_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 // Relations

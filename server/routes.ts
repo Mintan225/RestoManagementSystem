@@ -424,6 +424,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete order
+  app.delete("/api/orders/:id", authenticateToken, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const deleted = await storage.deleteOrder(id);
+      if (deleted) {
+        res.json({ message: "Order deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Order not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      res.status(500).json({ message: "Failed to delete order" });
+    }
+  });
+
+  // Archives routes
+  app.get("/api/archives/orders", authenticateToken, async (req, res) => {
+    try {
+      const orders = await storage.getDeletedOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching deleted orders:", error);
+      res.status(500).json({ message: "Failed to fetch deleted orders" });
+    }
+  });
+
+  app.get("/api/archives/sales", authenticateToken, async (req, res) => {
+    try {
+      const sales = await storage.getDeletedSales();
+      res.json(sales);
+    } catch (error) {
+      console.error("Error fetching deleted sales:", error);
+      res.status(500).json({ message: "Failed to fetch deleted sales" });
+    }
+  });
+
+  app.get("/api/archives/expenses", authenticateToken, async (req, res) => {
+    try {
+      const expenses = await storage.getDeletedExpenses();
+      res.json(expenses);
+    } catch (error) {
+      console.error("Error fetching deleted expenses:", error);
+      res.status(500).json({ message: "Failed to fetch deleted expenses" });
+    }
+  });
+
   // Expenses routes
   app.get("/api/expenses", authenticateToken, async (req, res) => {
     try {

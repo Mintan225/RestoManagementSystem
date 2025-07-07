@@ -5,15 +5,48 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, ShoppingCart } from "lucide-react";
+import { Search, ShoppingCart, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Orders() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: allOrders = [], isLoading } = useQuery({
     queryKey: ["/api/orders"],
   });
+
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (orderId: number) => {
+      const response = await apiRequest(`/api/orders/${orderId}`, "DELETE");
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
+      toast({
+        title: "Succès",
+        description: "Commande supprimée avec succès",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteOrder = (orderId: number) => {
+    deleteOrderMutation.mutate(orderId);
+  };
 
   const { data: activeOrders = [] } = useQuery({
     queryKey: ["/api/orders", { active: true }],
@@ -110,7 +143,38 @@ export default function Orders() {
           ) : filteredOrders.length > 0 ? (
             <div className="space-y-4">
               {filteredOrders.map((order: any) => (
-                <OrderItem key={order.id} order={order} />
+                <div key={order.id} className="flex items-start gap-4">
+                  <div className="flex-1">
+                    <OrderItem order={order} />
+                  </div>
+                  <div className="flex-shrink-0 pt-4">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer cette commande</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Êtes-vous sûr de vouloir supprimer la commande #{order.id} ? 
+                            Cette action ne peut pas être annulée. La commande sera déplacée vers les archives.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Supprimer
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
