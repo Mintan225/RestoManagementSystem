@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCircle, Clock, ChefHat, Package } from "lucide-react";
+import { Bell, CheckCircle, Clock, ChefHat, Package, X } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 
 interface OrderNotificationProps {
@@ -16,31 +16,29 @@ interface OrderNotificationProps {
 }
 
 export function OrderNotification({ order, onClose }: OrderNotificationProps) {
-  const [isVisible, setIsVisible] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [show, setShow] = useState(true);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setIsVisible(false);
-        if (onClose) {
-          onClose();
-        }
-      }, 300); // Attendre la fin de l'animation
-    }, 5000); // Disparaît après 5 secondes
+    timerRef.current = setTimeout(() => {
+      handleClose();
+    }, 5000);
 
-    return () => clearTimeout(timer);
-  }, [onClose]);
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   const handleClose = () => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setIsVisible(false);
-      if (onClose) {
-        onClose();
-      }
-    }, 300);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setShow(false);
+    if (onClose) {
+      setTimeout(onClose, 300); // Délai pour l'animation
+    }
   };
 
   const getStatusInfo = (status: string) => {
@@ -64,14 +62,14 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
           icon: Package,
           text: "Prête",
           color: "bg-green-500",
-          message: "Votre commande est prête ! Vous pouvez venir la récupérer"
+          message: "Votre commande est prête à être récupérée !"
         };
       case "completed":
         return {
           icon: CheckCircle,
           text: "Terminée",
           color: "bg-gray-500",
-          message: "Votre commande a été livrée. Merci !"
+          message: "Votre commande a été livrée"
         };
       default:
         return {
@@ -86,56 +84,61 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
   const statusInfo = getStatusInfo(order.status);
   const StatusIcon = statusInfo.icon;
 
-  if (!isVisible) return null;
+  if (!show) return null;
 
   return (
-    <Card className={`fixed top-4 right-4 z-50 w-96 shadow-lg border-l-4 border-l-primary transition-all duration-300 ${
-        isAnimating ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'
-      }`}>
-      <CardContent className="p-4">
-        <div className="flex items-start space-x-3">
-          <div className={`p-2 rounded-full ${statusInfo.color}`}>
-            <StatusIcon className="h-4 w-4 text-white" />
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-1">
-              <h4 className="font-semibold text-sm">Commande #{order.id}</h4>
-              <Badge className={`${statusInfo.color} text-white`}>
-                {statusInfo.text}
-              </Badge>
+    <div 
+      className={`fixed top-4 right-4 z-50 w-96 transition-all duration-300 ${
+        show ? 'transform translate-x-0 opacity-100' : 'transform translate-x-full opacity-0'
+      }`}
+    >
+      <Card className="shadow-lg border-l-4 border-l-primary">
+        <CardContent className="p-4">
+          <div className="flex items-start space-x-3">
+            <div className={`p-2 rounded-full ${statusInfo.color}`}>
+              <StatusIcon className="h-4 w-4 text-white" />
             </div>
             
-            {order.customerName && (
-              <p className="text-sm text-gray-600 mb-1">{order.customerName}</p>
-            )}
-            
-            <p className="text-sm text-gray-800 mb-2">{statusInfo.message}</p>
-            
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>Total: {formatCurrency(parseFloat(order.total))}</span>
-              <button
-                onClick={handleClose}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-2 mb-1">
+                <h4 className="font-semibold text-sm">Commande #{order.id}</h4>
+                <Badge className={`${statusInfo.color} text-white`}>
+                  {statusInfo.text}
+                </Badge>
+              </div>
+              
+              {order.customerName && (
+                <p className="text-sm text-gray-600 mb-1">{order.customerName}</p>
+              )}
+              
+              <p className="text-sm text-gray-800 mb-2">{statusInfo.message}</p>
+              
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span>Total: {formatCurrency(parseFloat(order.total))}</span>
+                <button
+                  onClick={handleClose}
+                  className="text-gray-400 hover:text-gray-600 p-1"
+                  aria-label="Fermer la notification"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
-// Hook pour écouter les mises à jour des commandes
+// Hook pour écouter les mises à jour des commandes avec gestion robuste
 export function useOrderNotifications(tableId?: number) {
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [lastOrderCount, setLastOrderCount] = useState(0);
-  const [lastOrderStatuses, setLastOrderStatuses] = useState<Map<number, string>>(new Map());
+  const [lastOrderStatuses, setLastOrderStatuses] = useState<Record<number, string>>({});
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!tableId) return;
+    if (!tableId || tableId === 0) return;
 
     const checkForUpdates = async () => {
       try {
@@ -145,18 +148,18 @@ export function useOrderNotifications(tableId?: number) {
         const data = await response.json();
         const currentOrders = data.orders || [];
         
-        // Vérifier les changements de statut des commandes existantes
+        // Vérifier les changements de statut
         currentOrders.forEach((order: any) => {
-          const previousStatus = lastOrderStatuses.get(order.id);
+          const previousStatus = lastOrderStatuses[order.id];
           
-          // Si le statut a changé vers "preparing" ou "ready"
           if (previousStatus && previousStatus !== order.status && 
-              (order.status === "preparing" || order.status === "ready")) {
+              (order.status === "preparing" || order.status === "ready" || order.status === "completed")) {
             
             const notificationId = `${order.id}-${order.status}-${Date.now()}`;
+            
             setNotifications(prev => {
-              // Éviter les doublons
-              const exists = prev.some(n => n.id === order.id && n.status === order.status);
+              // Éviter les doublons en vérifiant l'ID unique
+              const exists = prev.some(n => n.notificationId === notificationId);
               if (!exists) {
                 return [...prev, { 
                   ...order, 
@@ -168,38 +171,33 @@ export function useOrderNotifications(tableId?: number) {
               return prev;
             });
           }
-          
-          // Mettre à jour le statut dans notre cache
-          setLastOrderStatuses(prev => new Map(prev.set(order.id, order.status)));
         });
         
-        // Vérifier les nouvelles commandes
-        if (currentOrders.length > lastOrderCount) {
-          const newOrders = currentOrders.slice(lastOrderCount);
-          newOrders.forEach((newOrder: any) => {
-            const notificationId = `${newOrder.id}-new-${Date.now()}`;
-            setNotifications(prev => [...prev, { 
-              ...newOrder, 
-              notificationId,
-              isNew: true, 
-              timestamp: Date.now() 
-            }]);
-          });
-        }
+        // Mettre à jour le cache des statuts
+        const newStatuses: Record<number, string> = {};
+        currentOrders.forEach((order: any) => {
+          newStatuses[order.id] = order.status;
+        });
+        setLastOrderStatuses(newStatuses);
         
-        setLastOrderCount(currentOrders.length);
       } catch (error) {
         console.error("Erreur lors de la vérification des mises à jour:", error);
       }
     };
 
-    // Vérification initiale
-    checkForUpdates();
+    // Vérification initiale après un délai
+    const initialTimer = setTimeout(checkForUpdates, 1000);
     
-    const interval = setInterval(checkForUpdates, 8000); // Vérifier toutes les 8 secondes
+    // Intervalle régulier
+    intervalRef.current = setInterval(checkForUpdates, 8000);
 
-    return () => clearInterval(interval);
-  }, [tableId, lastOrderCount, lastOrderStatuses]);
+    return () => {
+      clearTimeout(initialTimer);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [tableId]);
 
   const removeNotification = (notificationId: string) => {
     setNotifications(prev => prev.filter(n => n.notificationId !== notificationId));
