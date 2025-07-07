@@ -20,6 +20,7 @@ import Archives from "@/pages/archives";
 import CustomerMenu from "@/pages/customer-menu";
 import Config from "@/pages/config";
 import Users from "@/pages/users";
+import NotificationDemo from "@/pages/notification-demo";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -177,6 +178,10 @@ function Router() {
       </Route>
 
       {/* Redirect root to dashboard if authenticated, otherwise to login */}
+      <Route path="/notification-demo">
+        <NotificationDemo />
+      </Route>
+
       <Route path="/">
         {authService.isAuthenticated() ? (
           <Redirect to="/dashboard" />
