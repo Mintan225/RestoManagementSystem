@@ -116,6 +116,9 @@ Changelog:
 - July 07, 2025. Optimized notification system to prevent DOM manipulation errors
 - July 07, 2025. Enhanced notification messages with more engaging and friendly customer language
 - July 07, 2025. Updated notification message for "preparing" status to mention "transmise au comptoir"
+- July 07, 2025. Added comprehensive order tracking system for customers with real-time status updates
+- July 07, 2025. Implemented automatic order tracking modal opening after order placement
+- July 07, 2025. Added order tracking button in customer menu header for easy access
 ```
 
 ## User Preferences

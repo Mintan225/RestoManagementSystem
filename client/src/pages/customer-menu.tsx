@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/currency";
 import { OrderNotification, useOrderNotifications } from "@/components/order-notification";
+import { OrderTracking } from "@/components/order-tracking";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,6 +43,7 @@ export default function CustomerMenu() {
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "orange_money" | "mtn_momo" | "moov_money" | "wave">("cash");
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [lastOrderId, setLastOrderId] = useState<number | null>(null);
+  const [showOrderTracking, setShowOrderTracking] = useState(false);
   const { toast } = useToast();
   const { notifications, removeNotification } = useOrderNotifications(parseInt(tableNumber || "0"));
 
@@ -69,9 +71,10 @@ export default function CustomerMenu() {
     },
     onSuccess: (data) => {
       setLastOrderId(data.id);
+      setShowOrderTracking(true); // Ouvrir automatiquement le suivi
       toast({
         title: "Commande envoyée!",
-        description: `Votre commande #${data.id} a été transmise en cuisine. Vous recevrez des notifications sur le statut.`,
+        description: `Votre commande #${data.id} a été transmise. Suivez son évolution !`,
       });
       setCart([]);
       setCustomerName("");
@@ -450,6 +453,14 @@ export default function CustomerMenu() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Composant de suivi des commandes */}
+      {showOrderTracking && (
+        <OrderTracking
+          tableId={parseInt(tableNumber)}
+          onClose={() => setShowOrderTracking(false)}
+        />
+      )}
+
       {/* Notifications */}
       {notifications.map((notification) => (
         <OrderNotification
@@ -472,19 +483,31 @@ export default function CustomerMenu() {
                 <p className="text-sm text-gray-600">Table {table.number}</p>
               </div>
             </div>
-            <Button
-              onClick={() => setShowCart(true)}
-              className="relative"
-              disabled={cart.length === 0}
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Panier
-              {getTotalItems() > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive text-white text-xs">
-                  {getTotalItems()}
-                </Badge>
+            <div className="flex space-x-2">
+              {lastOrderId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowOrderTracking(true)}
+                  className="bg-blue-50 text-blue-600 border-blue-200"
+                >
+                  📋 Suivi
+                </Button>
               )}
-            </Button>
+              <Button
+                onClick={() => setShowCart(true)}
+                className="relative"
+                disabled={cart.length === 0}
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Panier
+                {getTotalItems() > 0 && (
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive text-white text-xs">
+                    {getTotalItems()}
+                  </Badge>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
