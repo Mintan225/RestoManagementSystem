@@ -17,15 +17,31 @@ interface OrderNotificationProps {
 
 export function OrderNotification({ order, onClose }: OrderNotificationProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsVisible(false);
-      onClose?.();
-    }, 10000); // Notification disparaît après 10 secondes
+      setIsAnimating(true);
+      setTimeout(() => {
+        setIsVisible(false);
+        if (onClose) {
+          onClose();
+        }
+      }, 300); // Attendre la fin de l'animation
+    }, 5000); // Disparaît après 5 secondes
 
     return () => clearTimeout(timer);
   }, [onClose]);
+
+  const handleClose = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      if (onClose) {
+        onClose();
+      }
+    }, 300);
+  };
 
   const getStatusInfo = (status: string) => {
     switch (status) {
