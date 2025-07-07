@@ -77,8 +77,7 @@ export default function CustomerMenu() {
         description: `Votre commande #${data.id} a été transmise. Suivez son évolution !`,
       });
       setCart([]);
-      setCustomerName("");
-      setCustomerPhone("");
+      // NE PAS réinitialiser customerName et customerPhone pour le suivi
       setOrderNotes("");
       setShowCart(false);
     },
@@ -459,10 +458,7 @@ export default function CustomerMenu() {
           tableId={parseInt(tableNumber)}
           customerName={customerName}
           customerPhone={customerPhone}
-          onClose={() => {
-            console.log("Fermeture suivi avec:", { customerName, customerPhone });
-            setShowOrderTracking(false);
-          }}
+          onClose={() => setShowOrderTracking(false)}
         />
       )}
 
@@ -489,7 +485,7 @@ export default function CustomerMenu() {
               </div>
             </div>
             <div className="flex space-x-2">
-              {lastOrderId && (
+              {lastOrderId && customerName && (
                 <Button
                   variant="outline"
                   size="sm"

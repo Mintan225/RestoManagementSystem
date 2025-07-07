@@ -26,15 +26,6 @@ export function OrderTracking({ tableId, customerName, customerPhone, onClose }:
   
   // Filtrer les commandes pour ce client spécifique
   const customerOrders = orders.filter((order: any) => {
-    // Debug
-    console.log("Filtrage commande:", { 
-      orderId: order.id, 
-      orderCustomer: order.customerName, 
-      orderPhone: order.customerPhone,
-      filterCustomer: customerName,
-      filterPhone: customerPhone
-    });
-    
     if (customerName && customerPhone) {
       const nameMatch = order.customerName?.toLowerCase() === customerName.toLowerCase();
       const phoneMatch = order.customerPhone === customerPhone;
