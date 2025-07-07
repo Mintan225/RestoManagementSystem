@@ -38,7 +38,10 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
   });
 
   if (res.status === 401) {
-    throw new Error("Unauthorized");
+    // Token expired, clear auth and redirect to login
+    authService.logout();
+    window.location.href = '/login';
+    throw new Error("Session expired. Please login again.");
   }
 
   await throwIfResNotOk(res);

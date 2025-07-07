@@ -17,6 +17,9 @@ function authenticateToken(req: any, res: any, next: any) {
 
   jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret', (err: any, decoded: any) => {
     if (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token expired. Please login again.' });
+      }
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
     req.user = decoded;

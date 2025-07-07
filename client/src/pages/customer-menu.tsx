@@ -218,13 +218,13 @@ export default function CustomerMenu() {
         status: "pending",
         paymentMethod,
         paymentStatus: paymentMethod === "cash" ? "pending" : "paid",
-        total: getTotalPrice(),
+        total: getTotalPrice().toString(),
         notes: orderNotes.trim() || null,
       },
       items: cart.map((item) => ({
         productId: item.id,
         quantity: item.quantity,
-        price: item.price,
+        price: item.price.toString(),
         notes: item.notes || null,
       })),
     };

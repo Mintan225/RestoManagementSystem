@@ -96,6 +96,11 @@ Changelog:
 - July 07, 2025. Fixed validation schemas for products, expenses, and sales
 - July 07, 2025. Added manual sales entry functionality
 - July 07, 2025. Resolved authentication and form submission issues
+- July 07, 2025. Added detailed order items display in orders section
+- July 07, 2025. Implemented intelligent product archiving system
+- July 07, 2025. Added expenses card to dashboard with 5-column layout
+- July 07, 2025. Created PDF receipt generation system with jsPDF
+- July 07, 2025. Fixed token expiration handling and order validation errors
 ```
 
 ## User Preferences
