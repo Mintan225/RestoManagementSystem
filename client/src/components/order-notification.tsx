@@ -62,7 +62,7 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
           icon: Package,
           text: "Prête",
           color: "bg-green-500",
-          message: "Votre commande est prête ! Vous pouvez venir la récupérer."
+          message: "Votre commande est prête ! Patientez un instant et vous serez servi."
         };
       case "completed":
         return {

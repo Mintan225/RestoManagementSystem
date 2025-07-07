@@ -99,7 +99,7 @@ export default function NotificationDemo() {
                 
                 <div className="p-3 border-l-4 border-green-500 bg-green-50">
                   <h4 className="font-medium text-green-800">Prête</h4>
-                  <p className="text-sm text-green-700">Votre commande est prête ! Vous pouvez venir la récupérer.</p>
+                  <p className="text-sm text-green-700">Votre commande est prête ! Patientez un instant et vous serez servi.</p>
                 </div>
                 
                 <div className="p-3 border-l-4 border-gray-500 bg-gray-50">

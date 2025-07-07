@@ -46,7 +46,7 @@ export function OrderTracking({ tableId, onClose }: OrderTrackingProps) {
           icon: Package,
           text: "Prête",
           color: "bg-green-500",
-          description: "Votre commande est prête ! Vous pouvez venir la récupérer.",
+          description: "Votre commande est prête ! Patientez un instant et vous serez servi.",
           progress: 100
         };
       case "completed":
@@ -178,7 +178,7 @@ export function OrderTracking({ tableId, onClose }: OrderTrackingProps) {
 
                     {order.status === 'ready' && (
                       <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-800">
-                        🎉 Votre commande est prête ! Rendez-vous au comptoir pour la récupérer.
+                        🎉 Votre commande est prête ! Patientez un instant et vous serez servi.
                       </div>
                     )}
                   </CardContent>

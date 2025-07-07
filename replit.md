@@ -119,6 +119,7 @@ Changelog:
 - July 07, 2025. Added comprehensive order tracking system for customers with real-time status updates
 - July 07, 2025. Implemented automatic order tracking modal opening after order placement
 - July 07, 2025. Added order tracking button in customer menu header for easy access
+- July 07, 2025. Updated "ready" status message to indicate table service instead of counter pickup
 ```
 
 ## User Preferences
