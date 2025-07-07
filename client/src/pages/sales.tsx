@@ -23,7 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TrendingUp, Euro, Calendar, Download, Plus } from "lucide-react";
+import { TrendingUp, Euro, Calendar, Download, Plus, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { authService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -166,6 +167,8 @@ export default function Sales() {
   const [dateRange, setDateRange] = useState("today");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Calculate date ranges
   const getDateRange = () => {
@@ -236,6 +239,32 @@ export default function Sales() {
       default:
         return "bg-gray-500";
     }
+  };
+
+  const deleteSaleMutation = useMutation({
+    mutationFn: async (saleId: number) => {
+      const response = await apiRequest(`/api/sales/${saleId}`, "DELETE");
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sales"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
+      toast({
+        title: "Succès",
+        description: "Vente supprimée avec succès",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteSale = (saleId: number) => {
+    deleteSaleMutation.mutate(saleId);
   };
 
   const exportToCSV = () => {
@@ -440,6 +469,33 @@ export default function Sales() {
                         {sale.description}
                       </p>
                     )}
+                  </div>
+                  <div className="flex-shrink-0 ml-4">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer cette vente</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Êtes-vous sûr de vouloir supprimer cette vente de {formatCurrency(parseFloat(sale.amount))} ? 
+                            Cette action ne peut pas être annulée.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteSale(sale.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Supprimer
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))}

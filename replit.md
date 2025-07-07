@@ -101,6 +101,8 @@ Changelog:
 - July 07, 2025. Added expenses card to dashboard with 5-column layout
 - July 07, 2025. Created PDF receipt generation system with jsPDF
 - July 07, 2025. Fixed token expiration handling and order validation errors
+- July 07, 2025. Added Mobile Money provider options (Orange Money, MTN MoMo, Moov, Wave)
+- July 07, 2025. Added sales deletion functionality with confirmation dialog
 ```
 
 ## User Preferences

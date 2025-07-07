@@ -55,6 +55,7 @@ export interface IStorage {
   getSales(): Promise<Sale[]>;
   getSalesByDateRange(startDate: Date, endDate: Date): Promise<Sale[]>;
   createSale(sale: InsertSale): Promise<Sale>;
+  deleteSale(id: number): Promise<boolean>;
 
   // Expenses
   getExpenses(): Promise<Expense[]>;
@@ -331,6 +332,11 @@ export class DatabaseStorage implements IStorage {
   async createSale(sale: InsertSale): Promise<Sale> {
     const [newSale] = await db.insert(sales).values(sale).returning();
     return newSale;
+  }
+
+  async deleteSale(id: number): Promise<boolean> {
+    const result = await db.delete(sales).where(eq(sales.id, id));
+    return (result.rowCount || 0) > 0;
   }
 
   // Expenses
