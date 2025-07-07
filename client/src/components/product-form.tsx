@@ -32,14 +32,9 @@ import { Plus } from "lucide-react";
 const productFormSchema = z.object({
   name: z.string().min(1, "Le nom est requis"),
   description: z.string().optional(),
-  price: z.union([
-    z.string().min(1, "Le prix est requis").transform((val) => parseFloat(val)),
-    z.number()
-  ]).transform((val) => typeof val === 'string' ? parseFloat(val) : val),
-  categoryId: z.union([
-    z.string().min(1, "La catégorie est requise").transform((val) => parseInt(val)),
-    z.number()
-  ]).transform((val) => typeof val === 'string' ? parseInt(val) : val),
+  price: z.string().min(1, "Le prix est requis"),
+  categoryId: z.string().min(1, "La catégorie est requise"),
+  imageUrl: z.string().optional(),
   available: z.boolean().default(true),
 });
 

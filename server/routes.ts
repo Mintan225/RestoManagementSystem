@@ -120,10 +120,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/products", authenticateToken, async (req, res) => {
     try {
-      // Convert string values to numbers for price and categoryId
+      // Convert number values to strings for price (decimal fields expect strings)
       const requestBody = { ...req.body };
-      if (typeof requestBody.price === 'string') {
-        requestBody.price = parseFloat(requestBody.price);
+      if (typeof requestBody.price === 'number') {
+        requestBody.price = requestBody.price.toString();
       }
       if (typeof requestBody.categoryId === 'string') {
         requestBody.categoryId = parseInt(requestBody.categoryId);
@@ -140,10 +140,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/products/:id", authenticateToken, async (req, res) => {
     try {
-      // Convert string values to numbers for price and categoryId
+      // Convert number values to strings for price (decimal fields expect strings)
       const requestBody = { ...req.body };
-      if (typeof requestBody.price === 'string') {
-        requestBody.price = parseFloat(requestBody.price);
+      if (typeof requestBody.price === 'number') {
+        requestBody.price = requestBody.price.toString();
       }
       if (typeof requestBody.categoryId === 'string') {
         requestBody.categoryId = parseInt(requestBody.categoryId);
@@ -313,11 +313,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/sales", authenticateToken, async (req, res) => {
     try {
-      const saleData = insertSaleSchema.parse(req.body);
+      // Convert number values to strings for amount (decimal fields expect strings)
+      const requestBody = { ...req.body };
+      if (typeof requestBody.amount === 'number') {
+        requestBody.amount = requestBody.amount.toString();
+      }
+      
+      const saleData = insertSaleSchema.parse(requestBody);
       const sale = await storage.createSale(saleData);
       res.json(sale);
     } catch (error) {
-      res.status(500).json({ message: "Failed to create sale" });
+      console.error("Error creating sale:", error);
+      res.status(500).json({ message: "Failed to create sale", error: error instanceof Error ? error.message : String(error) });
     }
   });
 

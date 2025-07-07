@@ -1,14 +1,169 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/currency";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Euro, Calendar, Download } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TrendingUp, Euro, Calendar, Download, Plus } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { authService } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
+
+const saleFormSchema = z.object({
+  amount: z.string().min(1, "Le montant est requis"),
+  paymentMethod: z.string().min(1, "La méthode de paiement est requise"),
+  description: z.string().optional(),
+});
+
+type SaleFormData = z.infer<typeof saleFormSchema>;
+
+function SaleForm({ onSuccess }: { onSuccess?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const form = useForm<SaleFormData>({
+    resolver: zodResolver(saleFormSchema),
+    defaultValues: {
+      amount: "",
+      paymentMethod: "",
+      description: "",
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("/api/sales", {
+        method: "POST",
+        headers: {
+          ...authService.getAuthHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sales"] });
+      setOpen(false);
+      form.reset();
+      toast({
+        title: "Succès",
+        description: "Vente ajoutée avec succès",
+      });
+      onSuccess?.();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter la vente",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: SaleFormData) => {
+    createMutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Ajouter une vente
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Ajouter une vente</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Label htmlFor="amount">Montant (FCFA)</Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.01"
+              {...form.register("amount")}
+              placeholder="0.00"
+            />
+            {form.formState.errors.amount && (
+              <p className="text-sm text-red-500 mt-1">
+                {form.formState.errors.amount.message}
+              </p>
+            )}
+          </div>
+          
+          <div>
+            <Label htmlFor="paymentMethod">Méthode de paiement</Label>
+            <Select onValueChange={(value) => form.setValue("paymentMethod", value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Espèces</SelectItem>
+                <SelectItem value="mobile_money">Mobile Money</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.paymentMethod && (
+              <p className="text-sm text-red-500 mt-1">
+                {form.formState.errors.paymentMethod.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="description">Description (optionnel)</Label>
+            <Input
+              id="description"
+              {...form.register("description")}
+              placeholder="Description de la vente..."
+            />
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              className="flex-1"
+            >
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="flex-1"
+            >
+              {createMutation.isPending ? "Ajout..." : "Ajouter"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function Sales() {
   const [dateRange, setDateRange] = useState("today");
@@ -116,10 +271,13 @@ export default function Sales() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Suivi des Ventes</h1>
-        <Button onClick={exportToCSV} disabled={sales.length === 0}>
-          <Download className="h-4 w-4 mr-2" />
-          Exporter CSV
-        </Button>
+        <div className="flex gap-2">
+          <SaleForm />
+          <Button onClick={exportToCSV} disabled={sales.length === 0}>
+            <Download className="h-4 w-4 mr-2" />
+            Exporter CSV
+          </Button>
+        </div>
       </div>
 
       {/* Date Range Selector */}

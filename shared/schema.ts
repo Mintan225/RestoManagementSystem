@@ -141,6 +141,11 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
   createdAt: true,
+}).extend({
+  price: z.union([
+    z.string().transform((val) => val),
+    z.number().transform((val) => val.toString())
+  ])
 });
 
 export const insertTableSchema = createInsertSchema(tables).omit({
@@ -161,6 +166,11 @@ export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
 export const insertSaleSchema = createInsertSchema(sales).omit({
   id: true,
   createdAt: true,
+}).extend({
+  amount: z.union([
+    z.string().transform((val) => val),
+    z.number().transform((val) => val.toString())
+  ])
 });
 
 export const insertExpenseSchema = createInsertSchema(expenses).omit({
