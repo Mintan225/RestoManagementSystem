@@ -7,8 +7,14 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role").notNull().default("admin"),
+  fullName: text("full_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  role: text("role").notNull().default("employee"),
+  permissions: text("permissions").array().notNull().default("{}"),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: integer("created_by").references(() => users.id),
 });
 
 export const categories = pgTable("categories", {
@@ -135,6 +141,13 @@ export const salesRelations = relations(sales, ({ one }) => ({
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+}).extend({
+  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+  fullName: z.string().min(2, "Le nom complet est requis").optional(),
+  email: z.string().email("Email invalide").optional(),
+  phone: z.string().optional(),
+  role: z.enum(["admin", "manager", "employee", "cashier"]).default("employee"),
+  permissions: z.array(z.string()).default([]),
 });
 
 export const insertCategorySchema = createInsertSchema(categories).omit({

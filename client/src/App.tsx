@@ -19,6 +19,7 @@ import Settings from "@/pages/settings";
 import Archives from "@/pages/archives";
 import CustomerMenu from "@/pages/customer-menu";
 import Config from "@/pages/config";
+import Users from "@/pages/users";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -166,6 +167,12 @@ function Router() {
       <Route path="/config">
         <ProtectedRoute>
           <Config />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/users">
+        <ProtectedRoute>
+          <Users />
         </ProtectedRoute>
       </Route>
 

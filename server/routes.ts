@@ -30,6 +30,60 @@ function authenticateToken(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Users management routes
+  app.get("/api/users", authenticateToken, async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.post("/api/users", authenticateToken, async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      const user = await storage.createUser({
+        ...userData,
+        password: hashedPassword,
+      });
+      res.json(user);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  app.put("/api/users/:id", authenticateToken, async (req, res) => {
+    try {
+      const userData = insertUserSchema.partial().parse(req.body);
+      if (userData.password) {
+        userData.password = await bcrypt.hash(userData.password, 10);
+      }
+      const user = await storage.updateUser(Number(req.params.id), userData);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  app.delete("/api/users/:id", authenticateToken, async (req, res) => {
+    try {
+      const success = await storage.deleteUser(Number(req.params.id));
+      if (!success) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -45,7 +99,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = insertUserSchema.parse({
         username,
         password: hashedPassword,
-        role: 'admin'
+        fullName: username,
+        role: 'admin',
+        permissions: ['products.view', 'products.create', 'products.edit', 'products.delete', 'products.archive', 'categories.view', 'categories.create', 'categories.edit', 'categories.delete', 'orders.view', 'orders.create', 'orders.edit', 'orders.delete', 'orders.update_status', 'sales.view', 'sales.create', 'sales.delete', 'sales.export', 'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete', 'tables.view', 'tables.create', 'tables.edit', 'tables.delete', 'tables.generate_qr', 'analytics.view', 'analytics.export', 'users.view', 'users.create', 'users.edit', 'users.delete', 'users.manage_permissions', 'config.view', 'config.edit', 'config.payment_methods', 'archives.view', 'archives.restore']
       });
 
       const user = await storage.createUser(userData);

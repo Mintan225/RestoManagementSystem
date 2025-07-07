@@ -12,6 +12,7 @@ import {
   LogOut,
   UtensilsCrossed,
   Archive,
+  Users,
 } from "lucide-react";
 
 const navigation = [
@@ -49,6 +50,11 @@ const navigation = [
     name: "Archives",
     href: "/archives",
     icon: Archive,
+  },
+  {
+    name: "Utilisateurs",
+    href: "/users",
+    icon: Users,
   },
   {
     name: "Paramètres",

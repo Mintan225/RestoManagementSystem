@@ -107,6 +107,9 @@ Changelog:
 - July 07, 2025. Added environment variables configuration for Mobile Money providers
 - July 07, 2025. Created payment service infrastructure with API endpoints
 - July 07, 2025. Added configuration page for testing payment methods
+- July 07, 2025. Implemented user management system with roles and permissions
+- July 07, 2025. Added user creation, editing, and role assignment functionality
+- July 07, 2025. Created granular permission system for fine-grained access control
 ```
 
 ## User Preferences
