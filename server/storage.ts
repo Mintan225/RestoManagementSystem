@@ -429,7 +429,8 @@ export class DatabaseStorage implements IStorage {
     }).from(sales)
       .where(and(
         gte(sales.createdAt, startOfDay),
-        lte(sales.createdAt, endOfDay)
+        lte(sales.createdAt, endOfDay),
+        isNull(sales.deletedAt)
       ));
 
     const expensesData = await db.select({
@@ -437,13 +438,15 @@ export class DatabaseStorage implements IStorage {
     }).from(expenses)
       .where(and(
         gte(expenses.createdAt, startOfDay),
-        lte(expenses.createdAt, endOfDay)
+        lte(expenses.createdAt, endOfDay),
+        isNull(expenses.deletedAt)
       ));
 
     const ordersData = await db.select().from(orders)
       .where(and(
         gte(orders.createdAt, startOfDay),
-        lte(orders.createdAt, endOfDay)
+        lte(orders.createdAt, endOfDay),
+        isNull(orders.deletedAt)
       ));
 
     const totalSales = Number(salesData[0]?.total || 0);
