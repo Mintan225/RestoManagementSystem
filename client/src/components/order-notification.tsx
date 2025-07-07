@@ -53,9 +53,9 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
       case "preparing":
         return {
           icon: ChefHat,
-          text: "En cuisine",
+          text: "En préparation",
           color: "bg-blue-500",
-          message: "Votre commande est actuellement en préparation en cuisine."
+          message: "Votre commande a été transmise au comptoir et est en préparation."
         };
       case "ready":
         return {

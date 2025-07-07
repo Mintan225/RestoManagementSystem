@@ -93,8 +93,8 @@ export default function NotificationDemo() {
                 </div>
                 
                 <div className="p-3 border-l-4 border-blue-500 bg-blue-50">
-                  <h4 className="font-medium text-blue-800">En cuisine</h4>
-                  <p className="text-sm text-blue-700">Votre commande est actuellement en préparation en cuisine.</p>
+                  <h4 className="font-medium text-blue-800">En préparation</h4>
+                  <p className="text-sm text-blue-700">Votre commande a été transmise au comptoir et est en préparation.</p>
                 </div>
                 
                 <div className="p-3 border-l-4 border-green-500 bg-green-50">

@@ -115,6 +115,7 @@ Changelog:
 - July 07, 2025. Created automatic admin user creation and improved error handling
 - July 07, 2025. Optimized notification system to prevent DOM manipulation errors
 - July 07, 2025. Enhanced notification messages with more engaging and friendly customer language
+- July 07, 2025. Updated notification message for "preparing" status to mention "transmise au comptoir"
 ```
 
 ## User Preferences
