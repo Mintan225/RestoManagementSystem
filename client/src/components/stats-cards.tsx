@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Banknote, ShoppingCart, Users, TrendingUp } from "lucide-react";
+import { Banknote, ShoppingCart, Users, TrendingUp, CreditCard } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 
 interface StatsCardsProps {
@@ -7,6 +7,7 @@ interface StatsCardsProps {
     todaySales: number;
     activeOrders: number;
     occupiedTables: string;
+    todayExpenses: number;
     todayProfit: number;
   };
 }
@@ -32,6 +33,12 @@ export function StatsCards({ stats }: StatsCardsProps) {
       bgColor: "bg-warning",
     },
     {
+      title: "Dépenses du jour",
+      value: formatCurrency(stats.todayExpenses),
+      icon: CreditCard,
+      bgColor: "bg-destructive",
+    },
+    {
       title: "Bénéfice du jour",
       value: formatCurrency(stats.todayProfit),
       icon: TrendingUp,
@@ -40,7 +47,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       {cards.map((card, index) => (
         <Card key={index} className="overflow-hidden shadow-sm border">
           <CardContent className="p-6">

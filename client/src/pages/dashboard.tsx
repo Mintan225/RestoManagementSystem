@@ -24,6 +24,7 @@ export default function Dashboard() {
     todaySales: todayStats?.totalSales || 0,
     activeOrders: activeOrders.length || 0,
     occupiedTables: `${tables.filter((t: any) => t.status === 'occupied').length}/${tables.length}`,
+    todayExpenses: todayStats?.totalExpenses || 0,
     todayProfit: todayStats?.profit || 0,
   };
 
