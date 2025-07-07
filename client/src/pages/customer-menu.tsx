@@ -459,7 +459,10 @@ export default function CustomerMenu() {
           tableId={parseInt(tableNumber)}
           customerName={customerName}
           customerPhone={customerPhone}
-          onClose={() => setShowOrderTracking(false)}
+          onClose={() => {
+            console.log("Fermeture suivi avec:", { customerName, customerPhone });
+            setShowOrderTracking(false);
+          }}
         />
       )}
 

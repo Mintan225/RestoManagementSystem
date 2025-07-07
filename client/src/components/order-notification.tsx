@@ -158,7 +158,7 @@ export function useOrderNotifications(tableId?: number, customerName?: string, c
           } else if (customerPhone) {
             return order.customerPhone === customerPhone;
           }
-          return true; // Si pas d'info client, afficher toutes les commandes de la table
+          return false; // Si pas d'info client, ne rien afficher
         });
         
         // Vérifier les changements de statut pour les commandes du client

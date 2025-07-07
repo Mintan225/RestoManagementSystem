@@ -26,15 +26,25 @@ export function OrderTracking({ tableId, customerName, customerPhone, onClose }:
   
   // Filtrer les commandes pour ce client spécifique
   const customerOrders = orders.filter((order: any) => {
+    // Debug
+    console.log("Filtrage commande:", { 
+      orderId: order.id, 
+      orderCustomer: order.customerName, 
+      orderPhone: order.customerPhone,
+      filterCustomer: customerName,
+      filterPhone: customerPhone
+    });
+    
     if (customerName && customerPhone) {
-      return order.customerName?.toLowerCase() === customerName.toLowerCase() && 
-             order.customerPhone === customerPhone;
+      const nameMatch = order.customerName?.toLowerCase() === customerName.toLowerCase();
+      const phoneMatch = order.customerPhone === customerPhone;
+      return nameMatch && phoneMatch;
     } else if (customerName) {
       return order.customerName?.toLowerCase() === customerName.toLowerCase();
     } else if (customerPhone) {
       return order.customerPhone === customerPhone;
     }
-    return true; // Si pas d'info client, afficher toutes les commandes de la table
+    return false; // Si pas d'info client, ne rien afficher
   });
   
   const activeOrders = customerOrders.filter((order: any) => order.status !== 'completed');
