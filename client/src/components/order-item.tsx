@@ -20,6 +20,18 @@ interface OrderItemProps {
     total: string;
     notes?: string;
     createdAt: string;
+    orderItems: Array<{
+      id: number;
+      quantity: number;
+      price: string;
+      notes?: string;
+      product: {
+        id: number;
+        name: string;
+        description?: string;
+        price: string;
+      };
+    }>;
   };
 }
 
@@ -129,6 +141,29 @@ export function OrderItem({ order }: OrderItemProps) {
             )}
           </div>
         </div>
+
+        {/* Produits commandés */}
+        {order.orderItems && order.orderItems.length > 0 && (
+          <div className="mb-4">
+            <h4 className="font-medium text-sm text-gray-700 mb-2">Produits commandés :</h4>
+            <div className="space-y-2">
+              {order.orderItems.map((item) => (
+                <div key={item.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <div className="flex-1">
+                    <span className="font-medium">{item.product.name}</span>
+                    {item.notes && (
+                      <span className="text-sm text-gray-600 ml-2">({item.notes})</span>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2 text-sm">
+                    <span className="text-gray-600">Qté: {item.quantity}</span>
+                    <span className="font-medium">{formatCurrency(item.price)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {order.status !== "completed" && order.status !== "cancelled" && (
           <div className="flex space-x-2">

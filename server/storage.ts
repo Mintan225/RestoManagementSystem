@@ -6,7 +6,7 @@ import {
   type Sale, type InsertSale, type Expense, type InsertExpense
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lte, sum } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sum, ne } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -37,8 +37,8 @@ export interface IStorage {
   deleteTable(id: number): Promise<boolean>;
 
   // Orders
-  getOrders(): Promise<Order[]>;
-  getActiveOrders(): Promise<Order[]>;
+  getOrders(): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] })[]>;
+  getActiveOrders(): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] })[]>;
   getOrder(id: number): Promise<Order | undefined>;
   getOrderWithItems(id: number): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] }) | undefined>;
   createOrder(order: InsertOrder): Promise<Order>;
@@ -205,17 +205,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Orders
-  async getOrders(): Promise<Order[]> {
-    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  async getOrders(): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] })[]> {
+    const ordersData = await db.select().from(orders).orderBy(desc(orders.createdAt));
+    
+    const ordersWithItems = await Promise.all(
+      ordersData.map(async (order) => {
+        const items = await this.getOrderItems(order.id);
+        return { ...order, orderItems: items };
+      })
+    );
+    
+    return ordersWithItems;
   }
 
-  async getActiveOrders(): Promise<Order[]> {
-    return await db.select().from(orders)
+  async getActiveOrders(): Promise<(Order & { orderItems: (OrderItem & { product: Product })[] })[]> {
+    const activeOrdersData = await db.select().from(orders)
       .where(and(
-        eq(orders.status, 'pending'),
-        eq(orders.paymentStatus, 'paid')
+        ne(orders.status, 'completed'),
+        ne(orders.status, 'cancelled')
       ))
-      .orderBy(orders.createdAt);
+      .orderBy(desc(orders.createdAt));
+    
+    const ordersWithItems = await Promise.all(
+      activeOrdersData.map(async (order) => {
+        const items = await this.getOrderItems(order.id);
+        return { ...order, orderItems: items };
+      })
+    );
+    
+    return ordersWithItems;
   }
 
   async getOrder(id: number): Promise<Order | undefined> {
