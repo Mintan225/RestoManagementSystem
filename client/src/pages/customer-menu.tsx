@@ -38,7 +38,7 @@ export default function CustomerMenu() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "mobile_money">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "orange_money" | "mtn_momo" | "moov_money" | "wave">("cash");
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const { toast } = useToast();
 
@@ -217,7 +217,7 @@ export default function CustomerMenu() {
         customerPhone: customerPhone.trim() || null,
         status: "pending",
         paymentMethod,
-        paymentStatus: paymentMethod === "cash" ? "pending" : "paid",
+        paymentStatus: paymentMethod === "cash" ? "pending" : "pending",
         total: getTotalPrice().toString(),
         notes: orderNotes.trim() || null,
       },

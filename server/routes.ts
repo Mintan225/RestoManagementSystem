@@ -296,9 +296,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/orders", async (req, res) => {
     try {
-      const orderData = insertOrderSchema.parse(req.body);
-      const order = await storage.createOrder(orderData);
-      res.json(order);
+      const { orderData, items } = req.body;
+      
+      // Valider les données de commande
+      const validatedOrderData = insertOrderSchema.parse(orderData);
+      
+      // Créer la commande
+      const order = await storage.createOrder(validatedOrderData);
+      
+      // Créer les éléments de commande
+      if (items && items.length > 0) {
+        for (const item of items) {
+          const validatedItem = insertOrderItemSchema.parse({
+            orderId: order.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+            notes: item.notes
+          });
+          await storage.createOrderItem(validatedItem);
+        }
+      }
+      
+      // Retourner la commande avec ses éléments
+      const orderWithItems = await storage.getOrderWithItems(order.id);
+      res.json(orderWithItems);
     } catch (error) {
       console.error("Error creating order:", error);
       res.status(500).json({ message: "Failed to create order", error: error instanceof Error ? error.message : String(error) });
