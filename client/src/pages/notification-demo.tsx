@@ -88,23 +88,23 @@ export default function NotificationDemo() {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="p-3 border-l-4 border-yellow-500 bg-yellow-50">
-                  <h4 className="font-medium text-yellow-800">En attente</h4>
-                  <p className="text-sm text-yellow-700">Commande reçue, en attente de préparation</p>
+                  <h4 className="font-medium text-yellow-800">Confirmée</h4>
+                  <p className="text-sm text-yellow-700">Commande confirmée ! Nous préparons votre délicieux repas.</p>
                 </div>
                 
                 <div className="p-3 border-l-4 border-blue-500 bg-blue-50">
-                  <h4 className="font-medium text-blue-800">En préparation</h4>
-                  <p className="text-sm text-blue-700">La cuisine travaille sur votre commande</p>
+                  <h4 className="font-medium text-blue-800">En cuisine</h4>
+                  <p className="text-sm text-blue-700">Votre commande est actuellement en préparation en cuisine.</p>
                 </div>
                 
                 <div className="p-3 border-l-4 border-green-500 bg-green-50">
                   <h4 className="font-medium text-green-800">Prête</h4>
-                  <p className="text-sm text-green-700">Commande terminée, prête à récupérer</p>
+                  <p className="text-sm text-green-700">Votre commande est prête ! Vous pouvez venir la récupérer.</p>
                 </div>
                 
                 <div className="p-3 border-l-4 border-gray-500 bg-gray-50">
-                  <h4 className="font-medium text-gray-800">Terminée</h4>
-                  <p className="text-sm text-gray-700">Commande livrée au client</p>
+                  <h4 className="font-medium text-gray-800">Livrée</h4>
+                  <p className="text-sm text-gray-700">Commande livrée avec succès. Merci de votre visite !</p>
                 </div>
               </div>
             </CardContent>

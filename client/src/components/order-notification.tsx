@@ -46,37 +46,37 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
       case "pending":
         return {
           icon: Clock,
-          text: "En attente",
+          text: "Confirmée",
           color: "bg-yellow-500",
-          message: "Votre commande a été reçue et est en attente de préparation"
+          message: "Commande confirmée ! Nous préparons votre délicieux repas."
         };
       case "preparing":
         return {
           icon: ChefHat,
-          text: "En préparation",
+          text: "En cuisine",
           color: "bg-blue-500",
-          message: "Votre commande est en cours de préparation"
+          message: "Votre commande est actuellement en préparation en cuisine."
         };
       case "ready":
         return {
           icon: Package,
           text: "Prête",
           color: "bg-green-500",
-          message: "Votre commande est prête à être récupérée !"
+          message: "Votre commande est prête ! Vous pouvez venir la récupérer."
         };
       case "completed":
         return {
           icon: CheckCircle,
-          text: "Terminée",
+          text: "Livrée",
           color: "bg-gray-500",
-          message: "Votre commande a été livrée"
+          message: "Commande livrée avec succès. Merci de votre visite !"
         };
       default:
         return {
           icon: Bell,
           text: "Mise à jour",
           color: "bg-gray-500",
-          message: "Statut de votre commande mis à jour"
+          message: "Le statut de votre commande a été mis à jour."
         };
     }
   };
