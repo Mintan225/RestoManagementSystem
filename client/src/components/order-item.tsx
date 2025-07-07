@@ -76,6 +76,7 @@ export function OrderItem({ order }: OrderItemProps) {
         description: "Commande mise à jour",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
     },
     onError: (error: Error) => {
       toast({

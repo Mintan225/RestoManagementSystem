@@ -60,6 +60,7 @@ function SaleForm({ onSuccess }: { onSuccess?: () => void }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sales"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
       setOpen(false);
       form.reset();
       toast({

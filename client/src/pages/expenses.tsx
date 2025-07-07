@@ -103,6 +103,7 @@ function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
         description: "Dépense créée avec succès",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
       setOpen(false);
       form.reset();
       onSuccess?.();
@@ -140,6 +141,7 @@ function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
         description: "Dépense modifiée avec succès",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
       setOpen(false);
       onSuccess?.();
     },
@@ -329,6 +331,7 @@ export default function Expenses() {
         description: "Dépense supprimée avec succès",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
     },
     onError: (error: Error) => {
       toast({
