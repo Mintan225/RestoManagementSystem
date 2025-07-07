@@ -104,6 +104,7 @@ function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/weekly"] });
       setOpen(false);
       form.reset();
       onSuccess?.();
@@ -142,6 +143,7 @@ function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/weekly"] });
       setOpen(false);
       onSuccess?.();
     },

@@ -12,6 +12,10 @@ export default function Dashboard() {
     queryKey: ["/api/analytics/daily"],
   });
 
+  const { data: weeklyStats = [], isLoading: weeklyLoading } = useQuery({
+    queryKey: ["/api/analytics/weekly"],
+  });
+
   const { data: activeOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["/api/orders", { active: true }],
   });
@@ -28,18 +32,15 @@ export default function Dashboard() {
     todayProfit: todayStats?.profit || 0,
   };
 
-  // Mock weekly sales data for the chart
-  const weeklyData = [
-    { day: "Lun", sales: 2340, color: "bg-primary" },
-    { day: "Mar", sales: 1980, color: "bg-primary" },
-    { day: "Mer", sales: 2520, color: "bg-primary" },
-    { day: "Jeu", sales: 1870, color: "bg-primary" },
-    { day: "Ven", sales: 2680, color: "bg-primary" },
-    { day: "Sam", sales: 3120, color: "bg-success" },
-    { day: "Dim", sales: 1650, color: "bg-secondary" },
-  ];
+  // Données réelles des ventes hebdomadaires
+  const weeklyData = weeklyStats.map((stat: any, index: number) => ({
+    day: stat.day,
+    sales: stat.sales,
+    orders: stat.orders,
+    color: index === 5 ? "bg-success" : index === 6 ? "bg-secondary" : "bg-primary"
+  }));
 
-  const maxSales = Math.max(...weeklyData.map(d => d.sales));
+  const maxSales = weeklyData.length > 0 ? Math.max(...weeklyData.map(d => d.sales)) : 1;
 
   return (
     <div className="space-y-8">
@@ -153,22 +154,43 @@ export default function Dashboard() {
             <CardTitle>Ventes de la semaine</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {weeklyData.map((data, index) => (
-                <div key={index} className="flex items-center">
-                  <div className="w-12 text-sm text-gray-500">{data.day}</div>
-                  <div className="flex-1 bg-gray-200 rounded-full h-4 mx-2">
-                    <div
-                      className={`${data.color} h-4 rounded-full transition-all duration-300`}
-                      style={{ width: `${(data.sales / maxSales) * 100}%` }}
-                    ></div>
+            {weeklyLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <div key={i} className="animate-pulse flex items-center">
+                    <div className="w-12 h-4 bg-gray-200 rounded"></div>
+                    <div className="flex-1 bg-gray-200 rounded-full h-4 mx-2"></div>
+                    <div className="w-16 h-4 bg-gray-200 rounded"></div>
                   </div>
-                  <div className="w-16 text-sm text-gray-900 text-right">
-                    {formatCurrency(data.sales)}
+                ))}
+              </div>
+            ) : weeklyData.length > 0 ? (
+              <div className="space-y-4">
+                {weeklyData.map((data, index) => (
+                  <div key={index} className="flex items-center">
+                    <div className="w-12 text-sm text-gray-500">{data.day}</div>
+                    <div className="flex-1 bg-gray-200 rounded-full h-4 mx-2">
+                      <div
+                        className={`${data.color} h-4 rounded-full transition-all duration-300`}
+                        style={{ 
+                          width: maxSales > 0 ? `${(data.sales / maxSales) * 100}%` : "0%" 
+                        }}
+                      ></div>
+                    </div>
+                    <div className="w-20 text-sm text-gray-900 text-right">
+                      {formatCurrency(data.sales)}
+                    </div>
+                    <div className="w-12 text-xs text-gray-500 text-right ml-2">
+                      {data.orders} cmd
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>Aucune donnée de vente disponible</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

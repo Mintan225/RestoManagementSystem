@@ -61,6 +61,7 @@ function SaleForm({ onSuccess }: { onSuccess?: () => void }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sales"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/weekly"] });
       setOpen(false);
       form.reset();
       toast({
@@ -250,6 +251,7 @@ export default function Sales() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sales"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/weekly"] });
       toast({
         title: "Succès",
         description: "Vente supprimée avec succès",

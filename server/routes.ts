@@ -530,6 +530,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/analytics/weekly", authenticateToken, async (req, res) => {
+    try {
+      const weeklyStats = await storage.getWeeklyStats();
+      res.json(weeklyStats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch weekly stats" });
+    }
+  });
+
   // Menu routes (public, no auth required)
   app.get("/api/menu/:tableId", async (req, res) => {
     try {

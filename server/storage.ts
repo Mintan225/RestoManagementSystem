@@ -68,6 +68,12 @@ export interface IStorage {
   deleteExpense(id: number): Promise<boolean>;
 
   // Analytics
+  getWeeklyStats(): Promise<Array<{
+    day: string;
+    date: Date;
+    sales: number;
+    orders: number;
+  }>>;
   getDailyStats(date: Date): Promise<{
     totalSales: number;
     totalExpenses: number;
@@ -412,6 +418,54 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Analytics
+  async getWeeklyStats(): Promise<Array<{
+    day: string;
+    date: Date;
+    sales: number;
+    orders: number;
+  }>> {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Lundi
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const weeklyData = [];
+    const dayNames = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
+    for (let i = 0; i < 7; i++) {
+      const currentDay = new Date(startOfWeek);
+      currentDay.setDate(startOfWeek.getDate() + i);
+      
+      const nextDay = new Date(currentDay);
+      nextDay.setDate(currentDay.getDate() + 1);
+
+      const salesData = await db.select({
+        total: sum(sales.amount)
+      }).from(sales)
+        .where(and(
+          gte(sales.createdAt, currentDay),
+          lte(sales.createdAt, nextDay),
+          isNull(sales.deletedAt)
+        ));
+
+      const ordersData = await db.select().from(orders)
+        .where(and(
+          gte(orders.createdAt, currentDay),
+          lte(orders.createdAt, nextDay),
+          isNull(orders.deletedAt)
+        ));
+
+      weeklyData.push({
+        day: dayNames[i],
+        date: currentDay,
+        sales: Number(salesData[0]?.total || 0),
+        orders: ordersData.length
+      });
+    }
+
+    return weeklyData;
+  }
+
   async getDailyStats(date: Date): Promise<{
     totalSales: number;
     totalExpenses: number;
