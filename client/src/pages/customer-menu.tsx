@@ -45,7 +45,7 @@ export default function CustomerMenu() {
   const [lastOrderId, setLastOrderId] = useState<number | null>(null);
   const [showOrderTracking, setShowOrderTracking] = useState(false);
   const { toast } = useToast();
-  const { notifications, removeNotification } = useOrderNotifications(parseInt(tableNumber || "0"));
+  const { notifications, removeNotification } = useOrderNotifications(parseInt(tableNumber || "0"), customerName, customerPhone);
 
   const { data: menuData, isLoading } = useQuery({
     queryKey: [`/api/menu/${tableNumber}`],
@@ -457,6 +457,8 @@ export default function CustomerMenu() {
       {showOrderTracking && (
         <OrderTracking
           tableId={parseInt(tableNumber)}
+          customerName={customerName}
+          customerPhone={customerPhone}
           onClose={() => setShowOrderTracking(false)}
         />
       )}

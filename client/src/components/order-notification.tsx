@@ -132,7 +132,7 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
 }
 
 // Hook pour écouter les mises à jour des commandes avec gestion robuste
-export function useOrderNotifications(tableId?: number) {
+export function useOrderNotifications(tableId?: number, customerName?: string, customerPhone?: string) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [lastOrderStatuses, setLastOrderStatuses] = useState<Record<number, string>>({});
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -148,8 +148,21 @@ export function useOrderNotifications(tableId?: number) {
         const data = await response.json();
         const currentOrders = data.orders || [];
         
-        // Vérifier les changements de statut
-        currentOrders.forEach((order: any) => {
+        // Filtrer les commandes pour ce client spécifique
+        const customerOrders = currentOrders.filter((order: any) => {
+          if (customerName && customerPhone) {
+            return order.customerName?.toLowerCase() === customerName.toLowerCase() && 
+                   order.customerPhone === customerPhone;
+          } else if (customerName) {
+            return order.customerName?.toLowerCase() === customerName.toLowerCase();
+          } else if (customerPhone) {
+            return order.customerPhone === customerPhone;
+          }
+          return true; // Si pas d'info client, afficher toutes les commandes de la table
+        });
+        
+        // Vérifier les changements de statut pour les commandes du client
+        customerOrders.forEach((order: any) => {
           const previousStatus = lastOrderStatuses[order.id];
           
           if (previousStatus && previousStatus !== order.status && 
@@ -173,9 +186,9 @@ export function useOrderNotifications(tableId?: number) {
           }
         });
         
-        // Mettre à jour le cache des statuts
+        // Mettre à jour le cache des statuts pour les commandes du client
         const newStatuses: Record<number, string> = {};
-        currentOrders.forEach((order: any) => {
+        customerOrders.forEach((order: any) => {
           newStatuses[order.id] = order.status;
         });
         setLastOrderStatuses(newStatuses);
@@ -197,7 +210,7 @@ export function useOrderNotifications(tableId?: number) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [tableId]);
+  }, [tableId, customerName, customerPhone]);
 
   const removeNotification = (notificationId: string) => {
     setNotifications(prev => prev.filter(n => n.notificationId !== notificationId));

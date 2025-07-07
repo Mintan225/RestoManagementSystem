@@ -8,10 +8,12 @@ import { useQuery } from "@tanstack/react-query";
 
 interface OrderTrackingProps {
   tableId: number;
+  customerName?: string;
+  customerPhone?: string;
   onClose: () => void;
 }
 
-export function OrderTracking({ tableId, onClose }: OrderTrackingProps) {
+export function OrderTracking({ tableId, customerName, customerPhone, onClose }: OrderTrackingProps) {
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   const { data: menuData, isLoading, refetch } = useQuery({
@@ -21,7 +23,21 @@ export function OrderTracking({ tableId, onClose }: OrderTrackingProps) {
   });
 
   const orders = menuData?.orders || [];
-  const activeOrders = orders.filter((order: any) => order.status !== 'completed');
+  
+  // Filtrer les commandes pour ce client spécifique
+  const customerOrders = orders.filter((order: any) => {
+    if (customerName && customerPhone) {
+      return order.customerName?.toLowerCase() === customerName.toLowerCase() && 
+             order.customerPhone === customerPhone;
+    } else if (customerName) {
+      return order.customerName?.toLowerCase() === customerName.toLowerCase();
+    } else if (customerPhone) {
+      return order.customerPhone === customerPhone;
+    }
+    return true; // Si pas d'info client, afficher toutes les commandes de la table
+  });
+  
+  const activeOrders = customerOrders.filter((order: any) => order.status !== 'completed');
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -81,7 +97,10 @@ export function OrderTracking({ tableId, onClose }: OrderTrackingProps) {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
             <CardTitle className="text-xl">Suivi de vos commandes</CardTitle>
-            <p className="text-sm text-gray-600">Table {tableId}</p>
+            <p className="text-sm text-gray-600">
+              Table {tableId}
+              {customerName && <span> • {customerName}</span>}
+            </p>
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -112,7 +131,12 @@ export function OrderTracking({ tableId, onClose }: OrderTrackingProps) {
             <div className="text-center py-8">
               <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune commande active</h3>
-              <p className="text-gray-600">Passez une commande pour voir son suivi ici !</p>
+              <p className="text-gray-600">
+                {customerName 
+                  ? `Aucune commande active pour ${customerName}.`
+                  : "Passez une commande pour voir son suivi ici !"
+                }
+              </p>
             </div>
           ) : (
             activeOrders.map((order: any) => {
