@@ -55,6 +55,11 @@ const navigation = [
     href: "/settings",
     icon: Settings,
   },
+  {
+    name: "Configuration",
+    href: "/config",
+    icon: Settings,
+  },
 ];
 
 interface SidebarProps {

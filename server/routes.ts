@@ -6,6 +6,8 @@ import { insertUserSchema, insertCategorySchema, insertProductSchema, insertTabl
 import { storage } from "./storage";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { APP_CONFIG, PaymentConfig, getAvailablePaymentMethods, getPaymentMethodLabel, isPaymentMethodEnabled } from "@shared/config";
+import { PaymentService } from "./payment-service";
 
 function authenticateToken(req: any, res: any, next: any) {
   const authHeader = req.headers['authorization'];
@@ -15,7 +17,7 @@ function authenticateToken(req: any, res: any, next: any) {
     return res.status(401).json({ message: 'Access token required' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret', (err: any, decoded: any) => {
+  jwt.verify(token, APP_CONFIG.SECURITY.JWT_SECRET, (err: any, decoded: any) => {
     if (err) {
       if (err.name === 'TokenExpiredError') {
         return res.status(401).json({ message: 'Token expired. Please login again.' });
@@ -49,8 +51,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       const token = jwt.sign(
         { id: user.id, username: user.username, role: user.role },
-        process.env.JWT_SECRET || 'fallback-secret',
-        { expiresIn: '24h' }
+        APP_CONFIG.SECURITY.JWT_SECRET,
+        { expiresIn: APP_CONFIG.SECURITY.JWT_EXPIRES_IN } as jwt.SignOptions
       );
 
       res.json({
@@ -79,8 +81,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const token = jwt.sign(
         { id: user.id, username: user.username, role: user.role },
-        process.env.JWT_SECRET || 'fallback-secret',
-        { expiresIn: '24h' }
+        APP_CONFIG.SECURITY.JWT_SECRET,
+        { expiresIn: APP_CONFIG.SECURITY.JWT_EXPIRES_IN } as jwt.SignOptions
       );
 
       res.json({
@@ -548,6 +550,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch menu" });
+    }
+  });
+
+  // Configuration routes
+  app.get("/api/config", (req, res) => {
+    try {
+      res.json({
+        restaurant: APP_CONFIG.RESTAURANT,
+        paymentMethods: getAvailablePaymentMethods().map(method => ({
+          id: method,
+          label: getPaymentMethodLabel(method),
+          enabled: isPaymentMethodEnabled(method)
+        })),
+        business: APP_CONFIG.BUSINESS,
+        app: {
+          name: APP_CONFIG.RESTAURANT.NAME,
+          version: "1.0.0",
+          environment: APP_CONFIG.APP.NODE_ENV
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch configuration" });
+    }
+  });
+
+  // Payment routes
+  app.post("/api/payments/initiate", async (req, res) => {
+    try {
+      const paymentConfig: PaymentConfig = req.body;
+      
+      // Validation des données de paiement
+      if (!paymentConfig.method || !paymentConfig.amount) {
+        return res.status(400).json({ message: "Method and amount are required" });
+      }
+
+      if (!isPaymentMethodEnabled(paymentConfig.method)) {
+        return res.status(400).json({ message: "Payment method not enabled" });
+      }
+
+      const result = await PaymentService.initiatePayment(paymentConfig);
+      res.json(result);
+    } catch (error) {
+      console.error("Payment initiation error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to initiate payment",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.get("/api/payments/status/:method/:transactionId", async (req, res) => {
+    try {
+      const { method, transactionId } = req.params;
+      
+      if (!isPaymentMethodEnabled(method as any)) {
+        return res.status(400).json({ message: "Payment method not enabled" });
+      }
+
+      const status = await PaymentService.checkPaymentStatus(method as any, transactionId);
+      res.json(status);
+    } catch (error) {
+      console.error("Payment status check error:", error);
+      res.status(500).json({ 
+        message: "Failed to check payment status",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Webhooks pour les paiements Mobile Money
+  app.post("/api/webhooks/orange-money", async (req, res) => {
+    try {
+      const result = await PaymentService.processWebhook("orange_money", req.body);
+      res.json(result);
+    } catch (error) {
+      console.error("Orange Money webhook error:", error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  app.post("/api/webhooks/mtn-momo", async (req, res) => {
+    try {
+      const result = await PaymentService.processWebhook("mtn_momo", req.body);
+      res.json(result);
+    } catch (error) {
+      console.error("MTN MoMo webhook error:", error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  app.post("/api/webhooks/moov-money", async (req, res) => {
+    try {
+      const result = await PaymentService.processWebhook("moov_money", req.body);
+      res.json(result);
+    } catch (error) {
+      console.error("Moov Money webhook error:", error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  app.post("/api/webhooks/wave", async (req, res) => {
+    try {
+      const result = await PaymentService.processWebhook("wave", req.body);
+      res.json(result);
+    } catch (error) {
+      console.error("Wave webhook error:", error);
+      res.status(500).json({ success: false });
     }
   });
 
