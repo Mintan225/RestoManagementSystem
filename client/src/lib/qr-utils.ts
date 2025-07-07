@@ -49,7 +49,16 @@ export function downloadQRCode(dataUrl: string, filename: string) {
   const link = document.createElement('a');
   link.href = dataUrl;
   link.download = filename;
+  
+  // Utiliser click() directement sans ajouter au DOM pour éviter les erreurs
+  link.style.display = 'none';
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+  
+  // Supprimer après un court délai pour éviter les erreurs
+  setTimeout(() => {
+    if (link.parentNode) {
+      document.body.removeChild(link);
+    }
+  }, 100);
 }

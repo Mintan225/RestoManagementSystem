@@ -32,7 +32,7 @@ import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, end
 import { fr } from "date-fns/locale";
 
 const expenseFormSchema = insertExpenseSchema.extend({
-  amount: z.string().min(1, "Le montant est requis"),
+  amount: z.string().min(1, "Le montant est requis").transform((val) => parseFloat(val)),
 });
 
 type ExpenseFormData = z.infer<typeof expenseFormSchema>;
