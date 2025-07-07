@@ -54,7 +54,8 @@ function SaleForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest("/api/sales", "POST", data);
+      const response = await apiRequest("/api/sales", "POST", data);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sales"] });
