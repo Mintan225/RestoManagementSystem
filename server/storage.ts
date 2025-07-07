@@ -109,7 +109,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCategory(id: number): Promise<boolean> {
     const result = await db.delete(categories).where(eq(categories.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Products
@@ -143,7 +143,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProduct(id: number): Promise<boolean> {
     const result = await db.delete(products).where(eq(products.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Tables
@@ -176,7 +176,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTable(id: number): Promise<boolean> {
     const result = await db.delete(tables).where(eq(tables.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Orders
@@ -223,7 +223,7 @@ export class DatabaseStorage implements IStorage {
     // Delete order items first
     await db.delete(orderItems).where(eq(orderItems.orderId, id));
     const result = await db.delete(orders).where(eq(orders.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Order Items
@@ -258,7 +258,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteOrderItem(id: number): Promise<boolean> {
     const result = await db.delete(orderItems).where(eq(orderItems.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Sales
@@ -309,7 +309,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExpense(id: number): Promise<boolean> {
     const result = await db.delete(expenses).where(eq(expenses.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Analytics
