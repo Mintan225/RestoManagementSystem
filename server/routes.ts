@@ -913,6 +913,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Super Admin Management routes
+  app.delete("/api/super-admin/products/:id", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteProduct(Number(req.params.id));
+      if (success) {
+        res.json({ message: "Product deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Product not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
+  app.delete("/api/super-admin/orders/:id", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteOrder(Number(req.params.id));
+      if (success) {
+        res.json({ message: "Order deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Order not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete order" });
+    }
+  });
+
+  app.delete("/api/super-admin/sales/:id", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteSale(Number(req.params.id));
+      if (success) {
+        res.json({ message: "Sale deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Sale not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete sale" });
+    }
+  });
+
+  app.delete("/api/super-admin/expenses/:id", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteExpense(Number(req.params.id));
+      if (success) {
+        res.json({ message: "Expense deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Expense not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete expense" });
+    }
+  });
+
+  app.delete("/api/super-admin/tables/:id", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteTable(Number(req.params.id));
+      if (success) {
+        res.json({ message: "Table deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Table not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete table" });
+    }
+  });
+
+  app.delete("/api/super-admin/users/:id", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteUser(Number(req.params.id));
+      if (success) {
+        res.json({ message: "User deleted successfully" });
+      } else {
+        res.status(404).json({ message: "User not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Super Admin data viewing route
+  app.get("/api/super-admin/all-data", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const [products, orders, sales, expenses, tables, users] = await Promise.all([
+        storage.getProducts(),
+        storage.getOrders(),
+        storage.getSales(),
+        storage.getExpenses(),
+        storage.getTables(),
+        storage.getUsers()
+      ]);
+
+      res.json({
+        products,
+        orders,
+        sales,
+        expenses,
+        tables,
+        users
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch data" });
+    }
+  });
+
   app.post('/api/super-admin/reset-system', authenticateSuperAdmin, async (req, res) => {
     try {
       await storage.resetAllData();

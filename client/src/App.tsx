@@ -24,6 +24,7 @@ import NotificationDemo from "@/pages/notification-demo";
 import NotFound from "@/pages/not-found";
 import SuperAdminLogin from "@/pages/super-admin-login";
 import SuperAdminDashboard from "@/pages/super-admin-dashboard";
+import SuperAdminDataManagement from "@/pages/super-admin-data-management";
 import SystemConfig from "@/pages/system-config";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -130,6 +131,10 @@ function Router() {
       
       <Route path="/super-admin/dashboard">
         <SuperAdminDashboard />
+      </Route>
+      
+      <Route path="/super-admin/data-management">
+        <SuperAdminDataManagement />
       </Route>
       
       <Route path="/super-admin/system-config">

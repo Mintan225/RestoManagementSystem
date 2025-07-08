@@ -297,6 +297,17 @@ export default function SuperAdminDashboard() {
                     Configuration
                   </Button>
                 </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setLocation("/super-admin/data-management")}
+                    variant="outline"
+                    className="w-full border-orange-200 text-orange-600 hover:bg-orange-50"
+                  >
+                    <Database className="h-4 w-4 mr-2" />
+                    Gestion des données
+                  </Button>
+                </div>
               </div>
 
               {/* Réinitialisation complète */}
