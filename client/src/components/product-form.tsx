@@ -68,22 +68,31 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch("/api/products", {
-        method: "POST",
-        headers: authService.getAuthHeaders(),
-        body: JSON.stringify({
-          ...data,
-          price: parseFloat(data.price),
-          categoryId: parseInt(data.categoryId),
-        }),
-      });
+      console.log("Creating product with data:", data);
+      try {
+        const response = await fetch("/api/products", {
+          method: "POST",
+          headers: authService.getAuthHeaders(),
+          body: JSON.stringify({
+            ...data,
+            price: parseFloat(data.price),
+            categoryId: parseInt(data.categoryId),
+          }),
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to create product");
+        if (!response.ok) {
+          const error = await response.json();
+          console.error("API error:", error);
+          throw new Error(error.message || "Failed to create product");
+        }
+
+        const result = await response.json();
+        console.log("Product created successfully:", result);
+        return result;
+      } catch (error) {
+        console.error("Network error:", error);
+        throw error;
       }
-
-      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -142,10 +151,20 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   const onSubmit = (data: ProductFormData) => {
-    if (product) {
-      updateMutation.mutate(data);
-    } else {
-      createMutation.mutate(data);
+    try {
+      console.log("Form submission data:", data);
+      if (product) {
+        updateMutation.mutate(data);
+      } else {
+        createMutation.mutate(data);
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la soumission du formulaire",
+        variant: "destructive",
+      });
     }
   };
 
