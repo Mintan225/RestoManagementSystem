@@ -386,22 +386,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/orders/:id", authenticateToken, async (req, res) => {
     try {
       const orderData = insertOrderSchema.partial().parse(req.body);
+      
+      // Si la commande passe au statut "completed", marquer automatiquement le paiement comme "paid"
+      if (orderData.status === 'completed') {
+        orderData.paymentStatus = 'paid';
+        orderData.completedAt = new Date();
+
+      }
+      
       const order = await storage.updateOrder(Number(req.params.id), orderData);
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
       
       // Si le statut est "completed" et le paiement est "paid", générer automatiquement une vente
-      if (orderData.status === 'completed' && order.paymentStatus === 'paid') {
+      if (orderData.status === 'completed' && orderData.paymentStatus === 'paid') {
         try {
           const orderWithItems = await storage.getOrderWithItems(order.id);
           if (orderWithItems) {
-            await storage.createSale({
-              orderId: order.id,
-              amount: order.total,
-              paymentMethod: order.paymentMethod || 'cash',
-              description: `Commande #${order.id} - ${orderWithItems.orderItems.map(item => item.product.name).join(', ')}`
-            });
+            // Vérifier si une vente existe déjà pour cette commande
+            const existingSales = await storage.getSales();
+            const existingSale = existingSales.find(sale => sale.orderId === order.id);
+            
+            if (!existingSale) {
+              await storage.createSale({
+                orderId: order.id,
+                amount: order.total,
+                paymentMethod: order.paymentMethod || 'cash',
+                description: `Commande #${order.id} - ${orderWithItems.orderItems.map(item => item.product.name).join(', ')}`
+              });
+              console.log(`Vente automatiquement créée pour la commande #${order.id}`);
+            } else {
+              console.log(`Vente déjà existante pour la commande #${order.id}`);
+            }
           }
         } catch (saleError) {
           console.error('Error creating sale for completed order:', saleError);
@@ -410,6 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(order);
     } catch (error) {
+      console.error("Error updating order:", error);
       res.status(500).json({ message: "Failed to update order" });
     }
   });

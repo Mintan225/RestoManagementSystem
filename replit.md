@@ -152,6 +152,8 @@ Changelog:
 - July 08, 2025. Converted all CSV export functionality to PDF export in sales and expenses pages
 - July 08, 2025. Enhanced real-time notification system with cache busting and improved status change detection
 - July 08, 2025. Updated notification message for "pending" status to "Nous préparons tous..." instead of "votre délicieux repas"
+- July 08, 2025. Fixed automatic sales creation when orders are completed - now automatically marks payment as paid and creates sales records
+- July 08, 2025. Verified complete order-to-sales-to-dashboard workflow integration with automatic FCFA amount calculation
 ```
 
 ## User Preferences
