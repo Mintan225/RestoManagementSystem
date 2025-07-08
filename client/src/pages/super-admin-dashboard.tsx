@@ -12,7 +12,7 @@ import {
   Settings
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+// Removed apiRequest import - using native fetch instead
 import { useLocation } from "wouter";
 import SuperAdminLayout from "@/components/super-admin-layout";
 import {
