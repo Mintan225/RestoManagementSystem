@@ -20,13 +20,11 @@ export default function SuperAdminLogin() {
     setIsLoading(true);
 
     try {
-      const response = await apiRequest("/api/super-admin/login", {
-        method: "POST",
-        body: { username, password }
-      });
+      const response = await apiRequest("/api/super-admin/login", "POST", { username, password });
 
-      if (response.token) {
-        localStorage.setItem("superAdminToken", response.token);
+      const data = await response.json();
+      if (data.token) {
+        localStorage.setItem("superAdminToken", data.token);
         toast({
           title: "Connexion réussie",
           description: "Bienvenue dans le portail Super Administrateur",

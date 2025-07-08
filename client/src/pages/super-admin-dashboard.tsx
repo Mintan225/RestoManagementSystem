@@ -54,12 +54,15 @@ export default function SuperAdminDashboard() {
         return;
       }
 
-      const response = await apiRequest("/api/super-admin/profile", {
+      const response = await fetch("/api/super-admin/profile", {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
         }
       });
-      setSuperAdmin(response);
+      if (!response.ok) throw new Error("Unauthorized");
+      const data = await response.json();
+      setSuperAdmin(data);
     } catch (error) {
       localStorage.removeItem("superAdminToken");
       setLocation("/super-admin/login");
@@ -78,13 +81,15 @@ export default function SuperAdminDashboard() {
     
     try {
       const token = localStorage.getItem("superAdminToken");
-      await apiRequest("/api/super-admin/create-admin", {
+      const response = await fetch("/api/super-admin/create-admin", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
         },
-        body: newAdmin
+        body: JSON.stringify(newAdmin)
       });
+      if (!response.ok) throw new Error("Failed to create admin");
 
       toast({
         title: "Administrateur créé",
@@ -112,12 +117,14 @@ export default function SuperAdminDashboard() {
     
     try {
       const token = localStorage.getItem("superAdminToken");
-      await apiRequest("/api/super-admin/reset-system", {
+      const response = await fetch("/api/super-admin/reset-system", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
         }
       });
+      if (!response.ok) throw new Error("Failed to reset system");
 
       toast({
         title: "Système réinitialisé",
