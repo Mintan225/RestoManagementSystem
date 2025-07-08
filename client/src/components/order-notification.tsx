@@ -56,7 +56,7 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
           icon: Clock,
           text: "Confirmée",
           color: "bg-yellow-500",
-          message: "Commande confirmée ! Nous préparons votre délicieux repas."
+          message: "Commande confirmée ! Nous préparons tous..."
         };
       case "preparing":
         return {

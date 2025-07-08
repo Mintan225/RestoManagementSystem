@@ -67,7 +67,7 @@ export function OrderTracking({ tableId, customerName, customerPhone, onClose }:
           icon: Clock,
           text: "Confirmée",
           color: "bg-yellow-500",
-          description: "Commande confirmée ! Nous préparons votre délicieux repas.",
+          description: "Commande confirmée ! Nous préparons tous...",
           progress: 25
         };
       case "preparing":
