@@ -590,15 +590,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   async resetAllData(): Promise<void> {
-    // Supprimer toutes les données dans l'ordre pour respecter les contraintes
-    await db.delete(orderItems);
-    await db.delete(orders);
-    await db.delete(sales);
-    await db.delete(expenses);
-    await db.delete(products);
-    await db.delete(categories);
-    await db.delete(tables);
-    await db.delete(users);
+    try {
+      // Supprimer toutes les données dans l'ordre correct (en tenant compte des clés étrangères)
+      console.log("🔄 Début de la réinitialisation complète du système...");
+      
+      // D'abord supprimer les ventes qui référencent les commandes
+      await db.delete(sales);
+      console.log("✅ Ventes supprimées");
+      
+      // Puis supprimer les items de commande qui référencent les commandes et produits
+      await db.delete(orderItems);
+      console.log("✅ Items de commande supprimés");
+      
+      // Ensuite supprimer les commandes
+      await db.delete(orders);
+      console.log("✅ Commandes supprimées");
+      
+      // Supprimer les dépenses
+      await db.delete(expenses);
+      console.log("✅ Dépenses supprimées");
+      
+      // Supprimer les produits qui référencent les catégories
+      await db.delete(products);
+      console.log("✅ Produits supprimés");
+      
+      // Supprimer les catégories
+      await db.delete(categories);
+      console.log("✅ Catégories supprimées");
+      
+      // Supprimer les tables
+      await db.delete(tables);
+      console.log("✅ Tables supprimées");
+      
+      // Supprimer les utilisateurs (sauf super admin)
+      await db.delete(users);
+      console.log("✅ Utilisateurs supprimés");
+      
+      console.log("🎉 Réinitialisation système terminée avec succès !");
+    } catch (error) {
+      console.error("❌ Erreur lors de la réinitialisation:", error);
+      throw error;
+    }
     
     // Créer l'administrateur par défaut
     const hashedPassword = await bcrypt.hash("admin123", 10);
