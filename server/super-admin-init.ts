@@ -7,7 +7,7 @@ export async function createDefaultSuperAdmin() {
     const existingSuperAdmin = await storage.getSuperAdminByUsername("superadmin");
     
     if (!existingSuperAdmin) {
-      const hashedPassword = await bcrypt.hash("Super@2025!", 10);
+      const hashedPassword = await bcrypt.hash("superadmin123", 10);
       
       await storage.createSuperAdmin({
         username: "superadmin",
@@ -19,7 +19,7 @@ export async function createDefaultSuperAdmin() {
       
       console.log("✅ Super administrateur par défaut créé:");
       console.log("   Nom d'utilisateur: superadmin");
-      console.log("   Mot de passe: Super@2025!");
+      console.log("   Mot de passe: superadmin123");
       console.log("   Accès: /super-admin/login");
     }
   } catch (error) {
