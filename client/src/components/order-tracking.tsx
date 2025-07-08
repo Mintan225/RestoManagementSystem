@@ -18,24 +18,26 @@ export function OrderTracking({ tableId, customerName, customerPhone, onClose }:
 
   const { data: menuData, isLoading, refetch } = useQuery({
     queryKey: [`/api/menu/${tableId}`],
-    refetchInterval: autoRefresh ? 3000 : false, // Actualisation toutes les 3 secondes
+    refetchInterval: autoRefresh ? 2000 : false, // Actualisation toutes les 2 secondes pour plus de réactivité
     enabled: !!tableId,
+    refetchOnWindowFocus: true, // Actualiser quand la fenêtre redevient active
+    staleTime: 0, // Les données sont considérées comme périmées immédiatement
   });
 
   const orders = menuData?.orders || [];
   
   // Filtrer les commandes pour ce client spécifique
   const customerOrders = orders.filter((order: any) => {
-    // Debug temporaire
-    console.log("Filtrage:", { 
-      orderId: order.id,
-      orderName: order.customerName,
-      orderPhone: order.customerPhone,
-      filterName: customerName,
-      filterPhone: customerPhone,
-      nameMatch: order.customerName?.toLowerCase() === customerName?.toLowerCase(),
-      phoneMatch: order.customerPhone === customerPhone
-    });
+    // Debug pour vérifier la synchronisation des mises à jour
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Suivi commande - filtrage:", { 
+        orderId: order.id,
+        status: order.status,
+        orderName: order.customerName,
+        filterName: customerName,
+        timestamp: new Date().toLocaleTimeString()
+      });
+    }
     
     if (customerName && customerPhone) {
       const nameMatch = order.customerName?.toLowerCase() === customerName.toLowerCase();

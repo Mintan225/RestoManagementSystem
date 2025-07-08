@@ -75,8 +75,15 @@ export function OrderItem({ order }: OrderItemProps) {
         title: "Succès",
         description: "Commande mise à jour",
       });
+      // Invalider toutes les requêtes liées aux commandes
       queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics/daily"] });
+      // Invalider aussi les endpoints de menu utilisés par le suivi client
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return query.queryKey[0]?.toString().startsWith('/api/menu/');
+        }
+      });
     },
     onError: (error: Error) => {
       toast({

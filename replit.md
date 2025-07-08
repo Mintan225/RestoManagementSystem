@@ -146,6 +146,9 @@ Changelog:
 - July 08, 2025. Fixed DOM manipulation errors in notification system by improving cleanup logic and error handling
 - July 08, 2025. Optimized notification polling frequency from 5 to 8 seconds to reduce system load
 - July 08, 2025. Added automatic notification cleanup and limited maximum notifications to prevent UI clutter
+- July 08, 2025. Fixed real-time order tracking synchronization between admin dashboard and customer interface
+- July 08, 2025. Improved cache invalidation to sync all menu endpoints when order status changes
+- July 08, 2025. Optimized order tracking refresh rate to 2 seconds for better responsiveness
 ```
 
 ## User Preferences

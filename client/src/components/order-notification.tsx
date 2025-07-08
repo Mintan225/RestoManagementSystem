@@ -211,8 +211,8 @@ export function useOrderNotifications(tableId?: number, customerName?: string, c
     // Vérification initiale après un délai
     const initialTimer = setTimeout(checkForUpdates, 1000);
     
-    // Intervalle régulier
-    intervalRef.current = setInterval(checkForUpdates, 8000);
+    // Intervalle régulier - réduit à 3 secondes pour plus de réactivité
+    intervalRef.current = setInterval(checkForUpdates, 3000);
 
     return () => {
       clearTimeout(initialTimer);
