@@ -9,6 +9,11 @@ export const APP_CONFIG = {
     ENABLED_METHODS: ["cash", "orange_money", "mtn_momo", "moov_money", "wave"] as const,
     CURRENCY: "FCFA",
     CURRENCY_SYMBOL: "FCFA"
+  },
+  SECURITY: {
+    JWT_SECRET: process.env.JWT_SECRET || "default-jwt-secret-for-development-only",
+    JWT_EXPIRES_IN: "24h",
+    SUPER_ADMIN_JWT_SECRET: process.env.SUPER_ADMIN_JWT_SECRET || "super-admin-jwt-secret-for-development-only"
   }
 };
 

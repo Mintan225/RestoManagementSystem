@@ -762,7 +762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: 'Access token required' });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET || 'secret', (err: any, decoded: any) => {
+    jwt.verify(token, APP_CONFIG.SECURITY.SUPER_ADMIN_JWT_SECRET, (err: any, decoded: any) => {
       if (err) {
         return res.status(403).json({ message: 'Invalid or expired token' });
       }
@@ -788,7 +788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const token = jwt.sign(
         { id: superAdmin.id, username: superAdmin.username, type: 'super_admin' },
-        process.env.JWT_SECRET || 'secret',
+        APP_CONFIG.SECURITY.SUPER_ADMIN_JWT_SECRET,
         { expiresIn: '1h' }
       );
 

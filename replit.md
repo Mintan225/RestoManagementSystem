@@ -138,6 +138,11 @@ Changelog:
 - July 08, 2025. Created comprehensive Super Admin system with separate authentication portal
 - July 08, 2025. Added system reset functionality for complete data wipe and restaurant transfer
 - July 08, 2025. Fixed API request methods in super admin portal for proper authentication
+- July 08, 2025. Implemented dynamic application name system with super admin settings management
+- July 08, 2025. Added systemSettings table for flexible key-value configuration storage
+- July 08, 2025. Created comprehensive system settings CRUD operations and API endpoints
+- July 08, 2025. Fixed JWT authentication issues by adding proper security configuration
+- July 08, 2025. Enhanced SystemConfig component with application name customization interface
 ```
 
 ## User Preferences
