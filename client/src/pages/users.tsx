@@ -45,7 +45,7 @@ import {
   UserX,
   Settings,
 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+// Removed apiRequest import - using native fetch instead
 import { DEFAULT_PERMISSIONS, getRoleDisplayName, getPermissionDisplayName, type UserRole, type Permission } from "@shared/permissions";
 
 const userFormSchema = z.object({
@@ -95,7 +95,17 @@ function UserForm({ user, onSuccess }: UserFormProps) {
         permissions,
         email: data.email || null,
       };
-      const response = await apiRequest("/api/users", "POST", userData);
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: authService.getAuthHeaders(),
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create user");
+      }
+
       return response.json();
     },
     onSuccess: () => {
@@ -125,7 +135,17 @@ function UserForm({ user, onSuccess }: UserFormProps) {
         permissions,
         email: data.email || null,
       };
-      const response = await apiRequest(`/api/users/${user.id}`, "PUT", userData);
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: "PUT",
+        headers: authService.getAuthHeaders(),
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update user");
+      }
+
       return response.json();
     },
     onSuccess: () => {
@@ -363,7 +383,17 @@ function UsersPage() {
 
   const toggleUserStatusMutation = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: number; isActive: boolean }) => {
-      const response = await apiRequest(`/api/users/${userId}`, "PUT", { isActive });
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "PUT",
+        headers: authService.getAuthHeaders(),
+        body: JSON.stringify({ isActive }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update user status");
+      }
+
       return response.json();
     },
     onSuccess: () => {
@@ -384,7 +414,16 @@ function UsersPage() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      const response = await apiRequest(`/api/users/${userId}`, "DELETE");
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "DELETE",
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to delete user");
+      }
+
       return response;
     },
     onSuccess: () => {

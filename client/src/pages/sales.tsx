@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { TrendingUp, Euro, Calendar, Download, Plus, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { apiRequest } from "@/lib/queryClient";
+// Removed apiRequest import - using native fetch instead
 import { authService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -55,7 +55,17 @@ function SaleForm({ onSuccess }: { onSuccess?: () => void }) {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("/api/sales", "POST", data);
+      const response = await fetch("/api/sales", {
+        method: "POST",
+        headers: authService.getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create sale");
+      }
+
       return response.json();
     },
     onSuccess: () => {
@@ -245,7 +255,16 @@ export default function Sales() {
 
   const deleteSaleMutation = useMutation({
     mutationFn: async (saleId: number) => {
-      const response = await apiRequest(`/api/sales/${saleId}`, "DELETE");
+      const response = await fetch(`/api/sales/${saleId}`, {
+        method: "DELETE",
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to delete sale");
+      }
+
       return response;
     },
     onSuccess: () => {

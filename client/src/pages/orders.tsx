@@ -9,7 +9,7 @@ import { Search, ShoppingCart, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+// Removed apiRequest import - using native fetch instead
 import { useToast } from "@/hooks/use-toast";
 
 export default function Orders() {
@@ -26,7 +26,16 @@ export default function Orders() {
 
   const deleteOrderMutation = useMutation({
     mutationFn: async (orderId: number) => {
-      const response = await apiRequest(`/api/orders/${orderId}`, "DELETE");
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: "DELETE",
+        headers: authService.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to delete order");
+      }
+
       return response;
     },
     onSuccess: () => {

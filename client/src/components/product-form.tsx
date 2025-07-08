@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { insertProductSchema } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
+// Removed apiRequest import - using native fetch instead
 import { authService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
