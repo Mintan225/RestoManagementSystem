@@ -270,6 +270,25 @@ export type InsertSystemTab = z.infer<typeof insertSystemTabSchema>;
 export type SystemUpdate = typeof systemUpdates.$inferSelect;
 export type InsertSystemUpdate = z.infer<typeof insertSystemUpdateSchema>;
 
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value"),
+  description: text("description"),
+  category: text("category").default("general"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
+
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 

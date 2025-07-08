@@ -348,23 +348,39 @@ class WaveService extends BasePaymentService {
 // Factory pour créer les services de paiement
 class PaymentServiceFactory {
   private static orangeMoney = new OrangeMoneyService(
-    APP_CONFIG.PAYMENT.ORANGE_MONEY,
-    APP_CONFIG.PAYMENT.ORANGE_MONEY.BASE_URL
+    {
+      merchant_id: process.env.ORANGE_MONEY_MERCHANT_ID,
+      api_key: process.env.ORANGE_MONEY_API_KEY,
+      api_secret: process.env.ORANGE_MONEY_API_SECRET,
+    },
+    "https://api.orange.com/orange-money-webpay"
   );
 
   private static mtnMomo = new MTNMomoService(
-    APP_CONFIG.PAYMENT.MTN_MOMO,
-    APP_CONFIG.PAYMENT.MTN_MOMO.BASE_URL
+    {
+      api_user_id: process.env.MTN_MOMO_API_USER_ID,
+      subscription_key: process.env.MTN_MOMO_SUBSCRIPTION_KEY,
+      api_key: process.env.MTN_MOMO_API_KEY,
+    },
+    "https://sandbox.momodeveloper.mtn.com"
   );
 
   private static moovMoney = new MoovMoneyService(
-    APP_CONFIG.PAYMENT.MOOV_MONEY,
-    APP_CONFIG.PAYMENT.MOOV_MONEY.BASE_URL
+    {
+      merchant_id: process.env.MOOV_MONEY_MERCHANT_ID,
+      api_key: process.env.MOOV_MONEY_API_KEY,
+      api_secret: process.env.MOOV_MONEY_API_SECRET,
+    },
+    "https://api.moovmoney.com"
   );
 
   private static wave = new WaveService(
-    APP_CONFIG.PAYMENT.WAVE,
-    APP_CONFIG.PAYMENT.WAVE.BASE_URL
+    {
+      merchant_id: process.env.WAVE_MERCHANT_ID,
+      api_key: process.env.WAVE_API_KEY,
+      secret_key: process.env.WAVE_SECRET_KEY,
+    },
+    "https://api.wave.com/v1"
   );
 
   static getService(method: PaymentMethod): BasePaymentService | null {

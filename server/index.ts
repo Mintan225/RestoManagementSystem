@@ -56,10 +56,29 @@ async function createDefaultAdmin() {
   }
 }
 
+async function initializeSystemSettings() {
+  try {
+    // Vérifier si le paramètre app_name existe déjà
+    const appNameSetting = await storage.getSystemSetting("app_name");
+    if (!appNameSetting) {
+      await storage.createSystemSetting({
+        key: "app_name",
+        value: "Restaurant Manager",
+        description: "Nom personnalisé de l'application",
+        category: "branding"
+      });
+      log("✓ System setting app_name initialized");
+    }
+  } catch (error) {
+    log("Error initializing system settings: " + (error as Error).message);
+  }
+}
+
 (async () => {
   // Create default admin user
   await createDefaultAdmin();
   await createDefaultSuperAdmin();
+  await initializeSystemSettings();
   
   const server = await registerRoutes(app);
 

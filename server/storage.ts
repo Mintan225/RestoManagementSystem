@@ -1,12 +1,12 @@
 import { 
   users, categories, products, tables, orders, orderItems, sales, expenses, superAdmins,
-  systemTabs, systemUpdates,
+  systemTabs, systemUpdates, systemSettings,
   type User, type InsertUser, type Category, type InsertCategory,
   type Product, type InsertProduct, type Table, type InsertTable,
   type Order, type InsertOrder, type OrderItem, type InsertOrderItem,
   type Sale, type InsertSale, type Expense, type InsertExpense,
   type SuperAdmin, type InsertSuperAdmin, type SystemTab, type InsertSystemTab,
-  type SystemUpdate, type InsertSystemUpdate
+  type SystemUpdate, type InsertSystemUpdate, type SystemSetting, type InsertSystemSetting
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sum, ne, isNull, isNotNull } from "drizzle-orm";
@@ -105,6 +105,12 @@ export interface IStorage {
   getSystemUpdates(): Promise<SystemUpdate[]>;
   createSystemUpdate(update: InsertSystemUpdate): Promise<SystemUpdate>;
   deploySystemUpdate(id: number): Promise<boolean>;
+
+  // System settings management
+  getSystemSettings(): Promise<SystemSetting[]>;
+  getSystemSetting(key: string): Promise<SystemSetting | undefined>;
+  createSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting>;
+  updateSystemSetting(key: string, value: string): Promise<SystemSetting | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -649,6 +655,39 @@ export class DatabaseStorage implements IStorage {
       deployedAt: new Date() 
     }).where(eq(systemUpdates.id, id)).returning();
     return !!systemUpdate;
+  }
+
+  // System settings management
+  async getSystemSettings(): Promise<SystemSetting[]> {
+    return await db.select().from(systemSettings).orderBy(systemSettings.category, systemSettings.key);
+  }
+
+  async getSystemSetting(key: string): Promise<SystemSetting | undefined> {
+    const [setting] = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
+    return setting;
+  }
+
+  async createSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting> {
+    const [newSetting] = await db.insert(systemSettings).values(setting).returning();
+    return newSetting;
+  }
+
+  async updateSystemSetting(key: string, value: string): Promise<SystemSetting | undefined> {
+    try {
+      const [updated] = await db
+        .update(systemSettings)
+        .set({ 
+          value,
+          updatedAt: new Date()
+        })
+        .where(eq(systemSettings.key, key))
+        .returning();
+      
+      return updated;
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du paramètre:", error);
+      return undefined;
+    }
   }
 }
 

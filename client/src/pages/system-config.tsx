@@ -46,10 +46,21 @@ interface SystemUpdate {
   createdAt: string;
 }
 
+interface SystemSetting {
+  id: number;
+  key: string;
+  value?: string;
+  description?: string;
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function SystemConfig() {
   const { toast } = useToast();
   const [tabs, setTabs] = useState<SystemTab[]>([]);
   const [updates, setUpdates] = useState<SystemUpdate[]>([]);
+  const [settings, setSettings] = useState<SystemSetting[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Form states
@@ -67,6 +78,8 @@ export default function SystemConfig() {
     changelog: ""
   });
 
+  const [systemName, setSystemName] = useState("");
+
   useEffect(() => {
     loadData();
   }, []);
@@ -75,20 +88,32 @@ export default function SystemConfig() {
     try {
       const token = localStorage.getItem("superAdminToken");
       
-      const [tabsResponse, updatesResponse] = await Promise.all([
+      const [tabsResponse, updatesResponse, settingsResponse] = await Promise.all([
         fetch("/api/super-admin/system-tabs", {
           headers: { Authorization: `Bearer ${token}` }
         }),
         fetch("/api/super-admin/system-updates", {
           headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch("/api/super-admin/system-settings", {
+          headers: { Authorization: `Bearer ${token}` }
         })
       ]);
 
-      if (tabsResponse.ok && updatesResponse.ok) {
+      if (tabsResponse.ok && updatesResponse.ok && settingsResponse.ok) {
         const tabsData = await tabsResponse.json();
         const updatesData = await updatesResponse.json();
+        const settingsData = await settingsResponse.json();
+        
         setTabs(tabsData);
         setUpdates(updatesData);
+        setSettings(settingsData);
+        
+        // Trouver le nom du système dans les paramètres
+        const appNameSetting = settingsData.find((s: SystemSetting) => s.key === "app_name");
+        if (appNameSetting) {
+          setSystemName(appNameSetting.value || "");
+        }
       }
     } catch (error) {
       console.error("Erreur lors du chargement:", error);
@@ -236,6 +261,66 @@ export default function SystemConfig() {
     }
   };
 
+  const handleUpdateSystemName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const token = localStorage.getItem("superAdminToken");
+      
+      // Vérifier si le paramètre existe déjà
+      const existingSetting = settings.find(s => s.key === "app_name");
+      
+      if (existingSetting) {
+        // Mettre à jour
+        const response = await fetch("/api/super-admin/system-settings/app_name", {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ value: systemName })
+        });
+
+        if (response.ok) {
+          toast({
+            title: "Succès",
+            description: "Nom du logiciel mis à jour avec succès"
+          });
+          loadData();
+        }
+      } else {
+        // Créer
+        const response = await fetch("/api/super-admin/system-settings", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            key: "app_name",
+            value: systemName,
+            description: "Nom personnalisé de l'application",
+            category: "branding"
+          })
+        });
+
+        if (response.ok) {
+          toast({
+            title: "Succès",
+            description: "Nom du logiciel configuré avec succès"
+          });
+          loadData();
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la mise à jour du nom",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -256,10 +341,14 @@ export default function SystemConfig() {
         </div>
       </div>
 
-      <Tabs defaultValue="tabs" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="settings" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Paramètres
+          </TabsTrigger>
           <TabsTrigger value="tabs" className="flex items-center gap-2">
-            <TabsIcon className="h-4 w-4" />
+            <Settings className="h-4 w-4" />
             Onglets Système
           </TabsTrigger>
           <TabsTrigger value="updates" className="flex items-center gap-2">
@@ -267,6 +356,68 @@ export default function SystemConfig() {
             Mises à jour
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="settings" className="space-y-6">
+          {/* Configuration du nom du logiciel */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Nom du logiciel
+              </CardTitle>
+              <CardDescription>
+                Personnalisez le nom de votre application (ex: "Restaurant Manager", "Bar Manager", etc.)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleUpdateSystemName} className="space-y-4">
+                <div>
+                  <Label htmlFor="systemName">Nom de l'application</Label>
+                  <Input
+                    id="systemName"
+                    value={systemName}
+                    onChange={(e) => setSystemName(e.target.value)}
+                    placeholder="Ex: Restaurant Manager, Bar Manager..."
+                    required
+                  />
+                </div>
+                <Button type="submit" className="bg-red-600 hover:bg-red-700">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Mettre à jour le nom
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Autres paramètres système */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Paramètres système</CardTitle>
+              <CardDescription>
+                Configuration avancée du système
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {settings.map((setting) => (
+                  <div key={setting.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <div className="font-medium">{setting.key.replace(/_/g, ' ').toUpperCase()}</div>
+                      {setting.description && (
+                        <div className="text-sm text-gray-500">{setting.description}</div>
+                      )}
+                      <div className="text-sm text-blue-600">{setting.value || "Non défini"}</div>
+                    </div>
+                    <Badge variant="outline">{setting.category}</Badge>
+                  </div>
+                ))}
+                {settings.length === 0 && (
+                  <p className="text-center text-gray-500 py-8">Aucun paramètre configuré</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="tabs" className="space-y-6">
           {/* Création d'onglet */}

@@ -951,6 +951,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System settings management
+  app.get("/api/super-admin/system-settings", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getSystemSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des paramètres:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.get("/api/super-admin/system-settings/:key", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const setting = await storage.getSystemSetting(req.params.key);
+      if (!setting) {
+        return res.status(404).json({ message: "Paramètre non trouvé" });
+      }
+      res.json(setting);
+    } catch (error) {
+      console.error("Erreur lors de la récupération du paramètre:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.post("/api/super-admin/system-settings", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const setting = await storage.createSystemSetting(req.body);
+      res.json(setting);
+    } catch (error) {
+      console.error("Erreur lors de la création du paramètre:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.put("/api/super-admin/system-settings/:key", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const { value } = req.body;
+      const setting = await storage.updateSystemSetting(req.params.key, value);
+      if (!setting) {
+        return res.status(404).json({ message: "Paramètre non trouvé" });
+      }
+      res.json(setting);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du paramètre:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
