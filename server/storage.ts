@@ -8,6 +8,7 @@ import {
   type SuperAdmin, type InsertSuperAdmin, type SystemTab, type InsertSystemTab,
   type SystemUpdate, type InsertSystemUpdate, type SystemSetting, type InsertSystemSetting
 } from "@shared/schema";
+import { DEFAULT_PERMISSIONS } from "@shared/permissions";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sum, ne, isNull, isNotNull } from "drizzle-orm";
 import bcrypt from "bcrypt";
@@ -627,6 +628,32 @@ export class DatabaseStorage implements IStorage {
       console.log("✅ Utilisateurs supprimés");
       
       console.log("🎉 Réinitialisation système terminée avec succès !");
+      
+      // Recréer les données de base essentielles
+      console.log("🔄 Création des données de base...");
+      
+      // Créer les catégories de base
+      await db.insert(categories).values([
+        { name: "Boissons", description: "Boissons chaudes et froides" },
+        { name: "Plats Principaux", description: "Plats de résistance" },
+        { name: "Desserts", description: "Desserts et sucreries" }
+      ]);
+      console.log("✅ Catégories de base créées");
+      
+      // Créer les tables de base avec QR codes
+      const baseUrl = process.env.REPLIT_DOMAINS ? 
+        `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` : 
+        'http://localhost:5000';
+      
+      await db.insert(tables).values([
+        { number: 1, capacity: 4, qrCode: `${baseUrl}/menu/1` },
+        { number: 2, capacity: 6, qrCode: `${baseUrl}/menu/2` },
+        { number: 3, capacity: 2, qrCode: `${baseUrl}/menu/3` },
+        { number: 4, capacity: 8, qrCode: `${baseUrl}/menu/4` },
+        { number: 5, capacity: 4, qrCode: `${baseUrl}/menu/5` }
+      ]);
+      console.log("✅ Tables de base créées avec QR codes");
+      
     } catch (error) {
       console.error("❌ Erreur lors de la réinitialisation:", error);
       throw error;
@@ -639,8 +666,9 @@ export class DatabaseStorage implements IStorage {
       password: hashedPassword,
       fullName: "Administrateur",
       role: "admin",
-      permissions: [],
+      permissions: DEFAULT_PERMISSIONS.admin,
     });
+    console.log("✅ Administrateur par défaut créé avec toutes les permissions");
   }
 
   // System tabs management

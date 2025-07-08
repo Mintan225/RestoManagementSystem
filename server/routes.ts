@@ -688,10 +688,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Menu routes (public, no auth required)
-  app.get("/api/menu/:tableId", async (req, res) => {
+  app.get("/api/menu/:tableNumber", async (req, res) => {
     try {
-      const tableId = Number(req.params.tableId);
-      const table = await storage.getTable(tableId);
+      const tableNumber = Number(req.params.tableNumber);
+      const table = await storage.getTableByNumber(tableNumber);
       
       if (!table) {
         return res.status(404).json({ message: "Table not found" });
@@ -702,7 +702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get recent orders for this table for notification tracking
       const orders = await storage.getOrders();
-      const tableOrders = orders.filter(o => o.tableId === tableId);
+      const tableOrders = orders.filter(o => o.tableId === table.id);
 
       res.json({
         table,
