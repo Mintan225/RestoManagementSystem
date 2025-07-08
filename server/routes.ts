@@ -350,7 +350,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/tables", authenticateToken, async (req, res) => {
     try {
-      const tableData = insertTableSchema.parse(req.body);
+      const { number, capacity } = req.body;
+      
+      // Générer automatiquement le QR code
+      const qrCode = `https://${req.headers.host}/table/${number}`;
+      
+      const tableData = {
+        number: parseInt(number),
+        capacity: parseInt(capacity),
+        qrCode: qrCode,
+        status: "available"
+      };
+      
       const table = await storage.createTable(tableData);
       res.json(table);
     } catch (error) {

@@ -131,7 +131,6 @@ export default function QRCodes() {
     createTableMutation.mutate({
       number: tableNumber,
       capacity: capacity,
-      status: "available",
     });
   };
 

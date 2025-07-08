@@ -7,7 +7,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  fullName: text("full_name").notNull(),
+  fullName: text("full_name"),
   email: text("email"),
   phone: text("phone"),
   role: text("role").notNull().default("employee"),
@@ -180,7 +180,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
 }).extend({
   password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
-  fullName: z.string().min(2, "Le nom complet est requis").optional(),
+  fullName: z.string().optional(),
   email: z.string().email("Email invalide").nullable().optional().or(z.literal("")).transform(val => val === "" ? null : val),
   phone: z.string().nullable().optional().or(z.literal("")).transform(val => val === "" ? null : val),
   role: z.enum(["admin", "manager", "employee", "cashier"]).default("employee"),
@@ -205,6 +205,8 @@ export const insertProductSchema = createInsertSchema(products).omit({
 export const insertTableSchema = createInsertSchema(tables).omit({
   id: true,
   createdAt: true,
+}).extend({
+  qrCode: z.string().optional(),
 });
 
 export const insertOrderSchema = createInsertSchema(orders).omit({
