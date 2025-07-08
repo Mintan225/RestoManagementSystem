@@ -88,6 +88,20 @@ The application is designed for deployment on Replit with the following configur
 
 The system supports both development and production environments with proper environment variable configuration for database connections and JWT secrets.
 
+## Deployment and Updates Strategy
+
+### Update Mechanisms
+1. **Replit Deployment**: Direct GitHub integration for continuous deployment
+2. **Database Migrations**: Drizzle Kit for safe schema updates
+3. **Configuration Updates**: Environment variables for settings changes
+4. **Super Admin System**: Complete system reset and transfer capabilities
+
+### Update Types
+- **Feature Updates**: New functionalities through code deployment
+- **Database Schema**: Automated migrations with Drizzle
+- **Configuration**: Payment methods, currency, business settings
+- **Security**: Authentication updates and permission changes
+
 ## Changelog
 ```
 Changelog:
@@ -121,6 +135,9 @@ Changelog:
 - July 07, 2025. Added order tracking button in customer menu header for easy access
 - July 07, 2025. Updated "ready" status message to indicate table service instead of counter pickup
 - July 07, 2025. Fixed order tracking to show only orders for specific customer instead of all table orders
+- July 08, 2025. Created comprehensive Super Admin system with separate authentication portal
+- July 08, 2025. Added system reset functionality for complete data wipe and restaurant transfer
+- July 08, 2025. Fixed API request methods in super admin portal for proper authentication
 ```
 
 ## User Preferences
