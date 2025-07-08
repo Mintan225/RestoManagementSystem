@@ -181,10 +181,10 @@ export const insertUserSchema = createInsertSchema(users).omit({
 }).extend({
   password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
   fullName: z.string().min(2, "Le nom complet est requis").optional(),
-  email: z.union([z.string().email("Email invalide"), z.literal(""), z.null()]).transform(val => val || null),
-  phone: z.union([z.string(), z.literal(""), z.null()]).transform(val => val || null),
+  email: z.string().email("Email invalide").nullable().optional().or(z.literal("")).transform(val => val === "" ? null : val),
+  phone: z.string().nullable().optional().or(z.literal("")).transform(val => val === "" ? null : val),
   role: z.enum(["admin", "manager", "employee", "cashier"]).default("employee"),
-  permissions: z.array(z.string()).default([]),
+  permissions: z.array(z.string()).optional(),
 });
 
 export const insertCategorySchema = createInsertSchema(categories).omit({

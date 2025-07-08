@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { insertUserSchema, insertCategorySchema, insertProductSchema, insertTableSchema, insertOrderSchema, insertOrderItemSchema, insertSaleSchema, insertExpenseSchema, insertSuperAdminSchema } from "@shared/schema";
+import { DEFAULT_PERMISSIONS, type UserRole } from "@shared/permissions";
 import { storage } from "./storage";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
@@ -44,9 +45,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = insertUserSchema.parse(req.body);
       const hashedPassword = await bcrypt.hash(userData.password, 10);
+      
+      // Assigner les permissions par défaut si aucune permission n'est fournie ou si le tableau est vide
+      const defaultPermissions = {
+        admin: [
+          "products.view", "products.create", "products.edit", "products.delete", "products.archive",
+          "categories.view", "categories.create", "categories.edit", "categories.delete",
+          "orders.view", "orders.create", "orders.edit", "orders.delete", "orders.update_status",
+          "sales.view", "sales.create", "sales.delete", "sales.export",
+          "expenses.view", "expenses.create", "expenses.edit", "expenses.delete",
+          "tables.view", "tables.create", "tables.edit", "tables.delete", "tables.generate_qr",
+          "analytics.view", "analytics.export",
+          "users.view", "users.create", "users.edit", "users.delete", "users.manage_permissions",
+          "config.view", "config.edit", "config.payment_methods",
+          "archives.view", "archives.restore"
+        ],
+        manager: [
+          "products.view", "products.create", "products.edit", "products.delete", "products.archive",
+          "categories.view", "categories.create", "categories.edit", "categories.delete",
+          "orders.view", "orders.create", "orders.edit", "orders.update_status",
+          "sales.view", "sales.create", "sales.delete", "sales.export",
+          "expenses.view", "expenses.create", "expenses.edit", "expenses.delete",
+          "tables.view", "tables.create", "tables.edit", "tables.generate_qr",
+          "analytics.view", "analytics.export",
+          "users.view", "users.create", "users.edit",
+          "config.view", "config.edit",
+          "archives.view", "archives.restore"
+        ],
+        employee: [
+          "products.view",
+          "categories.view",
+          "orders.view", "orders.create", "orders.update_status",
+          "sales.view", "sales.create",
+          "expenses.view", "expenses.create",
+          "tables.view",
+          "analytics.view"
+        ],
+        cashier: [
+          "products.view",
+          "categories.view",
+          "orders.view", "orders.update_status",
+          "sales.view", "sales.create", "sales.export",
+          "tables.view",
+          "analytics.view"
+        ]
+      };
+      
+      const permissions = (userData.permissions && userData.permissions.length > 0) 
+        ? userData.permissions 
+        : defaultPermissions[userData.role] || [];
+      
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword,
+        permissions,
       });
       res.json(user);
     } catch (error) {

@@ -154,6 +154,9 @@ Changelog:
 - July 08, 2025. Updated notification message for "pending" status to "Nous préparons tous..." instead of "votre délicieux repas"
 - July 08, 2025. Fixed automatic sales creation when orders are completed - now automatically marks payment as paid and creates sales records
 - July 08, 2025. Verified complete order-to-sales-to-dashboard workflow integration with automatic FCFA amount calculation
+- July 08, 2025. Fixed user creation validation errors for email and phone fields - now accepts empty strings and null values
+- July 08, 2025. Implemented automatic assignment of role-based default permissions during user creation
+- July 08, 2025. Corrected all existing users to have proper permissions according to their roles
 ```
 
 ## User Preferences
