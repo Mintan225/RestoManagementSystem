@@ -120,16 +120,16 @@ function Router() {
       </Route>
 
       {/* Super Admin routes (separate system) */}
+      <Route path="/super-admin">
+        <Redirect to="/super-admin/login" />
+      </Route>
+      
       <Route path="/super-admin/login">
         <SuperAdminLogin />
       </Route>
       
       <Route path="/super-admin/dashboard">
         <SuperAdminDashboard />
-      </Route>
-      
-      <Route path="/super-admin/system-config">
-        <SystemConfig />
       </Route>
       
       <Route path="/super-admin/system-config">
