@@ -19,7 +19,13 @@ export default function SuperAdminLayout({ children, title, showBackButton = fal
 
   const handleLogout = () => {
     localStorage.removeItem("superAdminToken");
-    setLocation("/super-admin/login");
+    toast({
+      title: "Déconnexion",
+      description: "Vous avez été déconnecté avec succès",
+    });
+    setTimeout(() => {
+      setLocation("/super-admin/login");
+    }, 1000);
   };
 
   return (

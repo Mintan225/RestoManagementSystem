@@ -20,7 +20,17 @@ export default function SuperAdminLogin() {
     setIsLoading(true);
 
     try {
-      const response = await apiRequest("/api/super-admin/login", "POST", { username, password });
+      const response = await fetch("/api/super-admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Identifiants incorrects");
+      }
 
       const data = await response.json();
       if (data.token) {
@@ -29,7 +39,10 @@ export default function SuperAdminLogin() {
           title: "Connexion réussie",
           description: "Bienvenue dans le portail Super Administrateur",
         });
-        setLocation("/super-admin/dashboard");
+        // Redirection avec un petit délai pour laisser le toast s'afficher
+        setTimeout(() => {
+          setLocation("/super-admin/dashboard");
+        }, 1000);
       }
     } catch (error: any) {
       toast({
