@@ -217,17 +217,12 @@ export default function CustomerMenu() {
     }
 
     const orderData = {
-      orderData: {
-        tableId: table.id,
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim() || null,
-        status: "pending",
-        paymentMethod,
-        paymentStatus: paymentMethod === "cash" ? "pending" : "pending",
-        total: getTotalPrice().toString(),
-        notes: orderNotes.trim() || null,
-      },
-      items: cart.map((item) => ({
+      tableId: table.id,
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim() || null,
+      paymentMethod,
+      notes: orderNotes.trim() || null,
+      orderItems: cart.map((item) => ({
         productId: item.id,
         quantity: item.quantity,
         price: item.price.toString(),

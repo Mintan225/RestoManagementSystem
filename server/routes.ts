@@ -413,27 +413,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Route publique pour les commandes client (sans authentification)
   app.post("/api/orders", async (req, res) => {
     try {
-      const { orderData, items } = req.body;
+      const { tableId, customerName, customerPhone, orderItems, paymentMethod, notes } = req.body;
       
-      // Valider les données de commande
-      const validatedOrderData = insertOrderSchema.parse(orderData);
+      // Calculer le total à partir des items
+      const total = orderItems.reduce((sum: number, item: any) => {
+        return sum + (parseFloat(item.price) * item.quantity);
+      }, 0);
       
-      // Créer la commande
-      const order = await storage.createOrder(validatedOrderData);
+      const orderData = {
+        tableId: parseInt(tableId),
+        customerName,
+        customerPhone,
+        paymentMethod: paymentMethod || "cash",
+        total: total.toString(),
+        notes: notes || null,
+        status: "pending",
+        paymentStatus: "pending"
+      };
       
-      // Créer les éléments de commande
-      if (items && items.length > 0) {
-        for (const item of items) {
-          const validatedItem = insertOrderItemSchema.parse({
+      const order = await storage.createOrder(orderData);
+      
+      // Créer les items de la commande
+      if (orderItems && orderItems.length > 0) {
+        for (const item of orderItems) {
+          await storage.createOrderItem({
             orderId: order.id,
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-            notes: item.notes
+            productId: parseInt(item.productId),
+            quantity: parseInt(item.quantity),
+            price: item.price.toString(),
+            notes: item.notes || null
           });
-          await storage.createOrderItem(validatedItem);
         }
       }
       
