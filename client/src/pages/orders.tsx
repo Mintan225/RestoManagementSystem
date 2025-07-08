@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 // Removed apiRequest import - using native fetch instead
+import { authService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Orders() {
