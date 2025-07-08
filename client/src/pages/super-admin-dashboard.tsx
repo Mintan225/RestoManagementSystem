@@ -278,14 +278,25 @@ export default function SuperAdminDashboard() {
                 <p className="text-sm text-gray-600 mb-3">
                   Accéder au portail de gestion restaurant normal
                 </p>
-                <Button
-                  onClick={() => window.open("/", "_blank")}
-                  variant="outline"
-                  className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
-                >
-                  <Database className="h-4 w-4 mr-2" />
-                  Ouvrir le portail restaurant
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => window.open("/", "_blank")}
+                    variant="outline"
+                    className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Database className="h-4 w-4 mr-2" />
+                    Portail Restaurant
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setLocation("/super-admin/system-config")}
+                    variant="outline"
+                    className="flex-1 border-purple-200 text-purple-600 hover:bg-purple-50"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configuration
+                  </Button>
+                </div>
               </div>
 
               {/* Réinitialisation complète */}

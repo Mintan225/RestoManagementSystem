@@ -102,6 +102,30 @@ export const expenses = pgTable("expenses", {
   deletedAt: timestamp("deleted_at"),
 });
 
+// Table de configuration des onglets système
+export const systemTabs = pgTable("system_tabs", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  path: text("path").notNull(),
+  icon: text("icon"),
+  isActive: boolean("is_active").default(true),
+  order: integer("order").default(0),
+  requiredPermissions: text("required_permissions").array(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Table pour les mises à jour système
+export const systemUpdates = pgTable("system_updates", {
+  id: serial("id").primaryKey(),
+  version: text("version").notNull(),
+  description: text("description"),
+  changelog: text("changelog"),
+  isDeployed: boolean("is_deployed").default(false),
+  deployedAt: timestamp("deployed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sales: many(sales),
@@ -222,12 +246,29 @@ export const insertSuperAdminSchema = createInsertSchema(superAdmins).omit({
   lastLogin: true,
 });
 
+export const insertSystemTabSchema = createInsertSchema(systemTabs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSystemUpdateSchema = createInsertSchema(systemUpdates).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type SuperAdmin = typeof superAdmins.$inferSelect;
 export type InsertSuperAdmin = z.infer<typeof insertSuperAdminSchema>;
+
+export type SystemTab = typeof systemTabs.$inferSelect;
+export type InsertSystemTab = z.infer<typeof insertSystemTabSchema>;
+
+export type SystemUpdate = typeof systemUpdates.$inferSelect;
+export type InsertSystemUpdate = z.infer<typeof insertSystemUpdateSchema>;
 
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;

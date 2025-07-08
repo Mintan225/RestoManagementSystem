@@ -853,6 +853,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System tabs management
+  app.get("/api/super-admin/system-tabs", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const tabs = await storage.getSystemTabs();
+      res.json(tabs);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des onglets:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.post("/api/super-admin/system-tabs", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const tab = await storage.createSystemTab(req.body);
+      res.json(tab);
+    } catch (error) {
+      console.error("Erreur lors de la création de l'onglet:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.put("/api/super-admin/system-tabs/:id", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const tab = await storage.updateSystemTab(id, req.body);
+      if (!tab) {
+        return res.status(404).json({ message: "Onglet non trouvé" });
+      }
+      res.json(tab);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de l'onglet:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.delete("/api/super-admin/system-tabs/:id", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteSystemTab(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Onglet non trouvé" });
+      }
+      res.json({ message: "Onglet supprimé avec succès" });
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'onglet:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.patch("/api/super-admin/system-tabs/:id/toggle", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const toggled = await storage.toggleSystemTab(id);
+      if (!toggled) {
+        return res.status(404).json({ message: "Onglet non trouvé" });
+      }
+      res.json({ message: "Statut de l'onglet modifié avec succès" });
+    } catch (error) {
+      console.error("Erreur lors du changement de statut:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  // System updates management
+  app.get("/api/super-admin/system-updates", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const updates = await storage.getSystemUpdates();
+      res.json(updates);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des mises à jour:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.post("/api/super-admin/system-updates", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const update = await storage.createSystemUpdate(req.body);
+      res.json(update);
+    } catch (error) {
+      console.error("Erreur lors de la création de la mise à jour:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.post("/api/super-admin/system-updates/:id/deploy", authenticateSuperAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deployed = await storage.deploySystemUpdate(id);
+      if (!deployed) {
+        return res.status(404).json({ message: "Mise à jour non trouvée" });
+      }
+      res.json({ message: "Mise à jour déployée avec succès" });
+    } catch (error) {
+      console.error("Erreur lors du déploiement de la mise à jour:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

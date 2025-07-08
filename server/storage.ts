@@ -1,10 +1,12 @@
 import { 
   users, categories, products, tables, orders, orderItems, sales, expenses, superAdmins,
+  systemTabs, systemUpdates,
   type User, type InsertUser, type Category, type InsertCategory,
   type Product, type InsertProduct, type Table, type InsertTable,
   type Order, type InsertOrder, type OrderItem, type InsertOrderItem,
   type Sale, type InsertSale, type Expense, type InsertExpense,
-  type SuperAdmin, type InsertSuperAdmin
+  type SuperAdmin, type InsertSuperAdmin, type SystemTab, type InsertSystemTab,
+  type SystemUpdate, type InsertSystemUpdate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sum, ne, isNull, isNotNull } from "drizzle-orm";
@@ -91,6 +93,18 @@ export interface IStorage {
   getSuperAdminByUsername(username: string): Promise<SuperAdmin | undefined>;
   createSuperAdmin(superAdmin: InsertSuperAdmin): Promise<SuperAdmin>;
   resetAllData(): Promise<void>;
+
+  // System tabs management
+  getSystemTabs(): Promise<SystemTab[]>;
+  createSystemTab(tab: InsertSystemTab): Promise<SystemTab>;
+  updateSystemTab(id: number, tab: Partial<InsertSystemTab>): Promise<SystemTab | undefined>;
+  deleteSystemTab(id: number): Promise<boolean>;
+  toggleSystemTab(id: number): Promise<boolean>;
+
+  // System updates management
+  getSystemUpdates(): Promise<SystemUpdate[]>;
+  createSystemUpdate(update: InsertSystemUpdate): Promise<SystemUpdate>;
+  deploySystemUpdate(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -589,6 +603,52 @@ export class DatabaseStorage implements IStorage {
       role: "admin",
       permissions: [],
     });
+  }
+
+  // System tabs management
+  async getSystemTabs(): Promise<SystemTab[]> {
+    return await db.select().from(systemTabs).orderBy(asc(systemTabs.order));
+  }
+
+  async createSystemTab(tab: InsertSystemTab): Promise<SystemTab> {
+    const [systemTab] = await db.insert(systemTabs).values(tab).returning();
+    return systemTab;
+  }
+
+  async updateSystemTab(id: number, tab: Partial<InsertSystemTab>): Promise<SystemTab | undefined> {
+    const [systemTab] = await db.update(systemTabs).set(tab).where(eq(systemTabs.id, id)).returning();
+    return systemTab;
+  }
+
+  async deleteSystemTab(id: number): Promise<boolean> {
+    const result = await db.delete(systemTabs).where(eq(systemTabs.id, id));
+    return result.rowCount! > 0;
+  }
+
+  async toggleSystemTab(id: number): Promise<boolean> {
+    const tab = await db.select().from(systemTabs).where(eq(systemTabs.id, id)).limit(1);
+    if (tab.length === 0) return false;
+    
+    await db.update(systemTabs).set({ isActive: !tab[0].isActive }).where(eq(systemTabs.id, id));
+    return true;
+  }
+
+  // System updates management
+  async getSystemUpdates(): Promise<SystemUpdate[]> {
+    return await db.select().from(systemUpdates).orderBy(desc(systemUpdates.createdAt));
+  }
+
+  async createSystemUpdate(update: InsertSystemUpdate): Promise<SystemUpdate> {
+    const [systemUpdate] = await db.insert(systemUpdates).values(update).returning();
+    return systemUpdate;
+  }
+
+  async deploySystemUpdate(id: number): Promise<boolean> {
+    const [systemUpdate] = await db.update(systemUpdates).set({ 
+      isDeployed: true, 
+      deployedAt: new Date() 
+    }).where(eq(systemUpdates.id, id)).returning();
+    return !!systemUpdate;
   }
 }
 
