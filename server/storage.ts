@@ -1,12 +1,14 @@
 import { 
-  users, categories, products, tables, orders, orderItems, sales, expenses,
+  users, categories, products, tables, orders, orderItems, sales, expenses, superAdmins,
   type User, type InsertUser, type Category, type InsertCategory,
   type Product, type InsertProduct, type Table, type InsertTable,
   type Order, type InsertOrder, type OrderItem, type InsertOrderItem,
-  type Sale, type InsertSale, type Expense, type InsertExpense
+  type Sale, type InsertSale, type Expense, type InsertExpense,
+  type SuperAdmin, type InsertSuperAdmin
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sum, ne, isNull, isNotNull } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 export interface IStorage {
   // Users
@@ -83,6 +85,12 @@ export interface IStorage {
     profit: number;
     orderCount: number;
   }>;
+
+  // Super Admin operations
+  getSuperAdmin(id: number): Promise<SuperAdmin | undefined>;
+  getSuperAdminByUsername(username: string): Promise<SuperAdmin | undefined>;
+  createSuperAdmin(superAdmin: InsertSuperAdmin): Promise<SuperAdmin>;
+  resetAllData(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -540,6 +548,47 @@ export class DatabaseStorage implements IStorage {
       profit,
       orderCount,
     };
+  }
+
+  // Super Admin operations
+  async getSuperAdmin(id: number): Promise<SuperAdmin | undefined> {
+    const [superAdmin] = await db.select().from(superAdmins).where(eq(superAdmins.id, id));
+    return superAdmin;
+  }
+
+  async getSuperAdminByUsername(username: string): Promise<SuperAdmin | undefined> {
+    const [superAdmin] = await db.select().from(superAdmins).where(eq(superAdmins.username, username));
+    return superAdmin;
+  }
+
+  async createSuperAdmin(insertSuperAdmin: InsertSuperAdmin): Promise<SuperAdmin> {
+    const [superAdmin] = await db
+      .insert(superAdmins)
+      .values(insertSuperAdmin)
+      .returning();
+    return superAdmin;
+  }
+
+  async resetAllData(): Promise<void> {
+    // Supprimer toutes les données dans l'ordre pour respecter les contraintes
+    await db.delete(orderItems);
+    await db.delete(orders);
+    await db.delete(sales);
+    await db.delete(expenses);
+    await db.delete(products);
+    await db.delete(categories);
+    await db.delete(tables);
+    await db.delete(users);
+    
+    // Créer l'administrateur par défaut
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+    await db.insert(users).values({
+      username: "admin",
+      password: hashedPassword,
+      fullName: "Administrateur",
+      role: "admin",
+      permissions: [],
+    });
   }
 }
 

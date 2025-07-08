@@ -17,6 +17,19 @@ export const users = pgTable("users", {
   createdBy: integer("created_by").references(() => users.id),
 });
 
+// Table spéciale pour les super administrateurs
+export const superAdmins = pgTable("super_admins", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  fullName: text("full_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  isActive: boolean("is_active").notNull().default(true),
+  lastLogin: timestamp("last_login"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -202,9 +215,19 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({
   ])
 });
 
+// Schema de validation pour les super admins
+export const insertSuperAdminSchema = createInsertSchema(superAdmins).omit({
+  id: true,
+  createdAt: true,
+  lastLogin: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type SuperAdmin = typeof superAdmins.$inferSelect;
+export type InsertSuperAdmin = z.infer<typeof insertSuperAdminSchema>;
 
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;

@@ -22,6 +22,8 @@ import Config from "@/pages/config";
 import Users from "@/pages/users";
 import NotificationDemo from "@/pages/notification-demo";
 import NotFound from "@/pages/not-found";
+import SuperAdminLogin from "@/pages/super-admin-login";
+import SuperAdminDashboard from "@/pages/super-admin-dashboard";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -114,6 +116,15 @@ function Router() {
       {/* Customer menu route (public, no auth required) */}
       <Route path="/menu/:tableNumber">
         <CustomerMenu />
+      </Route>
+
+      {/* Super Admin routes (separate system) */}
+      <Route path="/super-admin/login">
+        <SuperAdminLogin />
+      </Route>
+      
+      <Route path="/super-admin/dashboard">
+        <SuperAdminDashboard />
       </Route>
 
       {/* Protected admin routes */}

@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { eq } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { insertUserSchema, insertCategorySchema, insertProductSchema, insertTableSchema, insertOrderSchema, insertOrderItemSchema, insertSaleSchema, insertExpenseSchema } from "@shared/schema";
+import { insertUserSchema, insertCategorySchema, insertProductSchema, insertTableSchema, insertOrderSchema, insertOrderItemSchema, insertSaleSchema, insertExpenseSchema, insertSuperAdminSchema } from "@shared/schema";
 import { storage } from "./storage";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
@@ -750,6 +750,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Wave webhook error:", error);
       res.status(500).json({ success: false });
+    }
+  });
+
+  // Middleware d'authentification pour super admin
+  function authenticateSuperAdmin(req: any, res: any, next: any) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'Access token required' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET || 'secret', (err: any, decoded: any) => {
+      if (err) {
+        return res.status(403).json({ message: 'Invalid or expired token' });
+      }
+      req.superAdmin = decoded;
+      next();
+    });
+  }
+
+  // Routes Super Admin
+  app.post('/api/super-admin/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      const superAdmin = await storage.getSuperAdminByUsername(username);
+      if (!superAdmin) {
+        return res.status(401).json({ message: "Identifiants incorrects" });
+      }
+
+      const validPassword = await bcrypt.compare(password, superAdmin.password);
+      if (!validPassword) {
+        return res.status(401).json({ message: "Identifiants incorrects" });
+      }
+
+      const token = jwt.sign(
+        { id: superAdmin.id, username: superAdmin.username, type: 'super_admin' },
+        process.env.JWT_SECRET || 'secret',
+        { expiresIn: '1h' }
+      );
+
+      res.json({ token, superAdmin: { id: superAdmin.id, username: superAdmin.username, fullName: superAdmin.fullName } });
+    } catch (error) {
+      console.error("Super admin login error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.get('/api/super-admin/profile', authenticateSuperAdmin, async (req: any, res) => {
+    try {
+      const superAdmin = await storage.getSuperAdmin(req.superAdmin.id);
+      if (!superAdmin) {
+        return res.status(404).json({ message: "Super admin not found" });
+      }
+      
+      res.json({
+        id: superAdmin.id,
+        username: superAdmin.username,
+        fullName: superAdmin.fullName,
+        email: superAdmin.email,
+        phone: superAdmin.phone
+      });
+    } catch (error) {
+      console.error("Super admin profile error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  app.post('/api/super-admin/create-admin', authenticateSuperAdmin, async (req, res) => {
+    try {
+      const adminData = insertUserSchema.parse(req.body);
+      const hashedPassword = await bcrypt.hash(adminData.password, 10);
+      
+      const newAdmin = await storage.createUser({
+        ...adminData,
+        password: hashedPassword,
+        role: "admin",
+        permissions: []
+      });
+
+      res.json({
+        id: newAdmin.id,
+        username: newAdmin.username,
+        fullName: newAdmin.fullName,
+        role: newAdmin.role
+      });
+    } catch (error) {
+      console.error("Create admin error:", error);
+      res.status(500).json({ message: "Failed to create admin" });
+    }
+  });
+
+  app.post('/api/super-admin/reset-system', authenticateSuperAdmin, async (req, res) => {
+    try {
+      await storage.resetAllData();
+      res.json({ message: "System reset successfully" });
+    } catch (error) {
+      console.error("System reset error:", error);
+      res.status(500).json({ message: "Failed to reset system" });
     }
   });
 
