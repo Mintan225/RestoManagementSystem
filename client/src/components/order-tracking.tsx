@@ -22,6 +22,13 @@ export function OrderTracking({ tableId, customerName, customerPhone, onClose }:
     enabled: !!tableId,
     refetchOnWindowFocus: true, // Actualiser quand la fenêtre redevient active
     staleTime: 0, // Les données sont considérées comme périmées immédiatement
+    queryFn: async () => {
+      const response = await fetch(`/api/menu/${tableId}?t=${Date.now()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch menu data');
+      }
+      return response.json();
+    },
   });
 
   const orders = menuData?.orders || [];

@@ -150,7 +150,7 @@ export function useOrderNotifications(tableId?: number, customerName?: string, c
 
     const checkForUpdates = async () => {
       try {
-        const response = await fetch(`/api/menu/${tableId}`);
+        const response = await fetch(`/api/menu/${tableId}?t=${Date.now()}`);
         if (!response.ok) return;
         
         const data = await response.json();
@@ -173,10 +173,28 @@ export function useOrderNotifications(tableId?: number, customerName?: string, c
         customerOrders.forEach((order: any) => {
           const previousStatus = lastOrderStatuses[order.id];
           
+          // Débogage pour voir les changements de statut
+          if (process.env.NODE_ENV === 'development') {
+            console.log("Notification check:", {
+              orderId: order.id,
+              previousStatus,
+              currentStatus: order.status,
+              hasChanged: previousStatus && previousStatus !== order.status,
+              timestamp: new Date().toLocaleTimeString()
+            });
+          }
+          
           if (previousStatus && previousStatus !== order.status && 
               (order.status === "preparing" || order.status === "ready" || order.status === "completed")) {
             
             const notificationId = `${order.id}-${order.status}-${Date.now()}`;
+            
+            console.log("Creating notification for status change:", {
+              orderId: order.id,
+              fromStatus: previousStatus,
+              toStatus: order.status,
+              notificationId
+            });
             
             setNotifications(prev => {
               // Éviter les doublons et limiter le nombre de notifications
@@ -201,18 +219,29 @@ export function useOrderNotifications(tableId?: number, customerName?: string, c
         customerOrders.forEach((order: any) => {
           newStatuses[order.id] = order.status;
         });
-        setLastOrderStatuses(newStatuses);
+        
+        // Pour la première fois, initialiser les statuts sans déclencher de notifications
+        setLastOrderStatuses(prev => {
+          if (Object.keys(prev).length === 0) {
+            console.log("Initializing status cache:", newStatuses);
+            return newStatuses;
+          }
+          return newStatuses;
+        });
         
       } catch (error) {
         console.error("Erreur lors de la vérification des mises à jour:", error);
       }
     };
 
+    // Vérification initiale immédiate pour initialiser les statuts
+    checkForUpdates();
+    
     // Vérification initiale après un délai
     const initialTimer = setTimeout(checkForUpdates, 1000);
     
-    // Intervalle régulier - réduit à 3 secondes pour plus de réactivité
-    intervalRef.current = setInterval(checkForUpdates, 3000);
+    // Intervalle régulier - réduit à 2 secondes pour plus de réactivité
+    intervalRef.current = setInterval(checkForUpdates, 2000);
 
     return () => {
       clearTimeout(initialTimer);
