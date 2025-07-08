@@ -270,29 +270,69 @@ export default function Sales() {
     deleteSaleMutation.mutate(saleId);
   };
 
-  const exportToCSV = () => {
+  const exportToPDF = () => {
     if (sales.length === 0) return;
 
-    const headers = ["Date", "Montant", "Méthode de paiement", "Description"];
-    const csvContent = [
-      headers.join(","),
-      ...sales.map((sale: any) => [
+    import('jspdf').then(({ default: jsPDF }) => {
+      const doc = new jsPDF();
+      
+      // En-tête
+      doc.setFontSize(20);
+      doc.text('Rapport des Ventes', 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Période: ${dateRange}`, 20, 35);
+      doc.text(`Généré le: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr })}`, 20, 45);
+      
+      // Tableau des ventes
+      const tableData = sales.map((sale: any) => [
         format(new Date(sale.createdAt), "dd/MM/yyyy HH:mm", { locale: fr }),
-        parseFloat(sale.amount).toFixed(2),
+        `${parseFloat(sale.amount).toFixed(0)} FCFA`,
         getPaymentMethodLabel(sale.paymentMethod),
-        sale.description || "",
-      ].join(","))
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `ventes-${dateRange}-${format(new Date(), "yyyy-MM-dd")}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+        sale.description || ""
+      ]);
+      
+      // En-têtes du tableau
+      const headers = ["Date", "Montant", "Méthode", "Description"];
+      
+      let yPos = 60;
+      
+      // Dessiner les en-têtes
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      headers.forEach((header, i) => {
+        doc.text(header, 20 + (i * 45), yPos);
+      });
+      
+      // Ligne sous les en-têtes
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 10;
+      
+      // Données du tableau
+      doc.setFont(undefined, 'normal');
+      tableData.forEach((row, index) => {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        
+        row.forEach((cell, i) => {
+          const maxWidth = 40;
+          const text = cell.length > 20 ? cell.substring(0, 20) + '...' : cell;
+          doc.text(text, 20 + (i * 45), yPos);
+        });
+        yPos += 8;
+      });
+      
+      // Total
+      const total = sales.reduce((sum: number, sale: any) => sum + parseFloat(sale.amount), 0);
+      yPos += 10;
+      doc.setFont(undefined, 'bold');
+      doc.text(`Total: ${total.toFixed(0)} FCFA`, 20, yPos);
+      
+      // Télécharger le PDF
+      doc.save(`ventes-${dateRange}-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    });
   };
 
   return (
@@ -302,9 +342,9 @@ export default function Sales() {
         <h1 className="text-2xl font-bold text-gray-900">Suivi des Ventes</h1>
         <div className="flex gap-2">
           <SaleForm />
-          <Button onClick={exportToCSV} disabled={sales.length === 0}>
+          <Button onClick={exportToPDF} disabled={sales.length === 0}>
             <Download className="h-4 w-4 mr-2" />
-            Exporter CSV
+            Exporter PDF
           </Button>
         </div>
       </div>

@@ -149,6 +149,7 @@ Changelog:
 - July 08, 2025. Fixed real-time order tracking synchronization between admin dashboard and customer interface
 - July 08, 2025. Improved cache invalidation to sync all menu endpoints when order status changes
 - July 08, 2025. Optimized order tracking refresh rate to 2 seconds for better responsiveness
+- July 08, 2025. Converted all CSV export functionality to PDF export in sales and expenses pages
 ```
 
 ## User Preferences

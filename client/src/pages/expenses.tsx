@@ -361,30 +361,70 @@ export default function Expenses() {
     return acc;
   }, {});
 
-  const exportToCSV = () => {
+  const exportToPDF = () => {
     if (filteredExpenses.length === 0) return;
 
-    const headers = ["Date", "Description", "Montant", "Catégorie", "Reçu"];
-    const csvContent = [
-      headers.join(","),
-      ...filteredExpenses.map((expense: any) => [
+    import('jspdf').then(({ default: jsPDF }) => {
+      const doc = new jsPDF();
+      
+      // En-tête
+      doc.setFontSize(20);
+      doc.text('Rapport des Dépenses', 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Période: ${dateRange}`, 20, 35);
+      doc.text(`Généré le: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr })}`, 20, 45);
+      
+      // Tableau des dépenses
+      const tableData = filteredExpenses.map((expense: any) => [
         format(new Date(expense.createdAt), "dd/MM/yyyy HH:mm", { locale: fr }),
         expense.description,
-        parseFloat(expense.amount).toFixed(2),
+        `${parseFloat(expense.amount).toFixed(0)} FCFA`,
         expense.category,
-        expense.receiptUrl || "",
-      ].join(","))
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `depenses-${dateRange}-${format(new Date(), "yyyy-MM-dd")}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+        expense.receiptUrl ? "Oui" : "Non"
+      ]);
+      
+      // En-têtes du tableau
+      const headers = ["Date", "Description", "Montant", "Catégorie", "Reçu"];
+      
+      let yPos = 60;
+      
+      // Dessiner les en-têtes
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      headers.forEach((header, i) => {
+        doc.text(header, 20 + (i * 35), yPos);
+      });
+      
+      // Ligne sous les en-têtes
+      doc.line(20, yPos + 2, 190, yPos + 2);
+      yPos += 10;
+      
+      // Données du tableau
+      doc.setFont(undefined, 'normal');
+      tableData.forEach((row, index) => {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        
+        row.forEach((cell, i) => {
+          const maxWidth = 30;
+          const text = cell.length > 15 ? cell.substring(0, 15) + '...' : cell;
+          doc.text(text, 20 + (i * 35), yPos);
+        });
+        yPos += 8;
+      });
+      
+      // Total
+      const total = filteredExpenses.reduce((sum: number, expense: any) => sum + parseFloat(expense.amount), 0);
+      yPos += 10;
+      doc.setFont(undefined, 'bold');
+      doc.text(`Total: ${total.toFixed(0)} FCFA`, 20, yPos);
+      
+      // Télécharger le PDF
+      doc.save(`depenses-${dateRange}-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    });
   };
 
   const getCategoryColor = (category: string) => {
@@ -403,9 +443,9 @@ export default function Expenses() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Gestion des Dépenses</h1>
         <div className="flex space-x-2">
-          <Button onClick={exportToCSV} disabled={filteredExpenses.length === 0} variant="outline">
+          <Button onClick={exportToPDF} disabled={filteredExpenses.length === 0} variant="outline">
             <Download className="h-4 w-4 mr-2" />
-            Exporter CSV
+            Exporter PDF
           </Button>
           <ExpenseForm />
         </div>
