@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Users, Package, ShoppingCart, Receipt, CreditCard, QrCode } from "lucide-react";
+import SuperAdminLayout from "@/components/super-admin-layout";
 
 export default function SuperAdminDataManagement() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -85,13 +86,14 @@ export default function SuperAdminDataManagement() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Gestion des Données</h1>
-        <p className="text-gray-600 mt-2">
-          Gérez et supprimez tous les éléments du système depuis cette interface centralisée.
-        </p>
-      </div>
+    <SuperAdminLayout title="Gestion des données" showBackButton={true}>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Gestion des Données</h1>
+          <p className="text-gray-600 mt-2">
+            Gérez et supprimez tous les éléments du système depuis cette interface centralisée.
+          </p>
+        </div>
 
       <Tabs defaultValue="products" className="space-y-4">
         <TabsList className="grid grid-cols-6 w-full">
@@ -425,6 +427,7 @@ export default function SuperAdminDataManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </SuperAdminLayout>
   );
 }

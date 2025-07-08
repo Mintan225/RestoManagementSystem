@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import SuperAdminLayout from "@/components/super-admin-layout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -333,13 +334,12 @@ export default function SystemConfig() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <div className="flex items-center justify-between">
+    <SuperAdminLayout title="Configuration système" showBackButton={true}>
+      <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold text-red-600">Configuration Système</h1>
           <p className="text-gray-600">Gérez les onglets et mises à jour du système</p>
         </div>
-      </div>
 
       <Tabs defaultValue="settings" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
@@ -677,6 +677,7 @@ export default function SystemConfig() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </SuperAdminLayout>
   );
 }
