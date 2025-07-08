@@ -52,13 +52,24 @@ export function downloadQRCode(dataUrl: string, filename: string) {
   
   // Utiliser click() directement sans ajouter au DOM pour éviter les erreurs
   link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
   
-  // Supprimer après un court délai pour éviter les erreurs
-  setTimeout(() => {
-    if (link.parentNode) {
+  try {
+    document.body.appendChild(link);
+    link.click();
+    
+    // Supprimer immédiatement après le clic
+    if (link.parentNode === document.body) {
       document.body.removeChild(link);
     }
-  }, 100);
+  } catch (error) {
+    console.warn('Error during QR code download:', error);
+    // En cas d'erreur, tentative de nettoyage
+    try {
+      if (link.parentNode === document.body) {
+        document.body.removeChild(link);
+      }
+    } catch (cleanupError) {
+      console.warn('Error during cleanup:', cleanupError);
+    }
+  }
 }

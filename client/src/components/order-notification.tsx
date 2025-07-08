@@ -27,6 +27,7 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
     return () => {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
+        timerRef.current = null;
       }
     };
   }, []);
@@ -34,10 +35,17 @@ export function OrderNotification({ order, onClose }: OrderNotificationProps) {
   const handleClose = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
     setShow(false);
     if (onClose) {
-      setTimeout(onClose, 300); // Délai pour l'animation
+      setTimeout(() => {
+        try {
+          onClose();
+        } catch (error) {
+          console.warn('Error during notification close:', error);
+        }
+      }, 300); // Délai pour l'animation
     }
   };
 
@@ -171,15 +179,17 @@ export function useOrderNotifications(tableId?: number, customerName?: string, c
             const notificationId = `${order.id}-${order.status}-${Date.now()}`;
             
             setNotifications(prev => {
-              // Éviter les doublons en vérifiant l'ID unique
+              // Éviter les doublons et limiter le nombre de notifications
               const exists = prev.some(n => n.notificationId === notificationId);
               if (!exists) {
-                return [...prev, { 
+                const newNotifications = [...prev, { 
                   ...order, 
                   notificationId,
                   timestamp: Date.now(),
                   isStatusChange: true 
                 }];
+                // Limiter à 3 notifications maximum pour éviter l'encombrement
+                return newNotifications.slice(-3);
               }
               return prev;
             });
@@ -215,6 +225,18 @@ export function useOrderNotifications(tableId?: number, customerName?: string, c
   const removeNotification = (notificationId: string) => {
     setNotifications(prev => prev.filter(n => n.notificationId !== notificationId));
   };
+
+  // Nettoyer automatiquement les notifications anciennes
+  useEffect(() => {
+    const cleanupTimer = setInterval(() => {
+      setNotifications(prev => {
+        const now = Date.now();
+        return prev.filter(n => now - n.timestamp < 30000); // Supprimer après 30 secondes
+      });
+    }, 10000); // Nettoyer toutes les 10 secondes
+
+    return () => clearInterval(cleanupTimer);
+  }, []);
 
   return { notifications, removeNotification };
 }
