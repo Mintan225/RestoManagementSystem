@@ -436,6 +436,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const order = await storage.createOrder(orderData);
       
+      // Mettre à jour le statut de la table comme "occupied" quand une commande est créée
+      try {
+        await storage.updateTable(parseInt(tableId), { status: "occupied" });
+      } catch (error) {
+        console.error("Error updating table status:", error);
+      }
+      
       // Créer les items de la commande
       if (orderItems && orderItems.length > 0) {
         for (const item of orderItems) {
@@ -472,6 +479,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const order = await storage.updateOrder(Number(req.params.id), orderData);
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
+      }
+      
+      // Mettre à jour le statut de la table quand la commande change
+      if (orderData.status) {
+        try {
+          let tableStatus = "available";
+          if (orderData.status === 'completed' || orderData.status === 'cancelled') {
+            // Vérifier s'il y a d'autres commandes actives pour cette table
+            const activeOrders = await storage.getActiveOrders();
+            const otherActiveOrders = activeOrders.filter((o: any) => 
+              o.tableId === order.tableId && 
+              o.id !== order.id && 
+              o.status !== 'completed' && 
+              o.status !== 'cancelled'
+            );
+            
+            if (otherActiveOrders.length === 0) {
+              tableStatus = "available";
+            } else {
+              tableStatus = "occupied";
+            }
+          } else {
+            tableStatus = "occupied";
+          }
+          
+          await storage.updateTable(order.tableId, { status: tableStatus });
+        } catch (error) {
+          console.error("Error updating table status:", error);
+        }
       }
       
       // Si le statut est "completed" et le paiement est "paid", générer automatiquement une vente

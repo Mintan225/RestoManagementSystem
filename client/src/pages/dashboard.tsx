@@ -10,6 +10,7 @@ import { Link } from "wouter";
 export default function Dashboard() {
   const { data: todayStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/analytics/daily"],
+    refetchInterval: 5000, // Actualisation toutes les 5 secondes
   });
 
   const { data: weeklyStats = [], isLoading: weeklyLoading } = useQuery({
@@ -18,16 +19,30 @@ export default function Dashboard() {
 
   const { data: activeOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["/api/orders", { active: true }],
+    refetchInterval: 3000, // Actualisation toutes les 3 secondes
   });
 
   const { data: tables = [] } = useQuery({
     queryKey: ["/api/tables"],
+    refetchInterval: 5000, // Actualisation toutes les 5 secondes
   });
+
+  // Calculer les tables occupées en temps réel basé sur les commandes actives ET le statut des tables
+  const occupiedTableIds = new Set(
+    activeOrders
+      .filter((order: any) => order.status !== 'completed' && order.status !== 'cancelled')
+      .map((order: any) => order.tableId)
+  );
+  const occupiedTablesFromOrders = occupiedTableIds.size;
+  const occupiedTablesFromStatus = tables.filter((t: any) => t.status === 'occupied').length;
+  
+  // Utiliser le maximum entre les deux méthodes pour s'assurer de l'exactitude
+  const occupiedTablesCount = Math.max(occupiedTablesFromOrders, occupiedTablesFromStatus);
 
   const stats = {
     todaySales: todayStats?.totalSales || 0,
     activeOrders: activeOrders.length || 0,
-    occupiedTables: `${tables.filter((t: any) => t.status === 'occupied').length}/${tables.length}`,
+    occupiedTables: `${occupiedTablesCount}/${tables.length}`,
     todayExpenses: todayStats?.totalExpenses || 0,
     todayProfit: todayStats?.profit || 0,
   };
