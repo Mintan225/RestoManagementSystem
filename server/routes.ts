@@ -738,6 +738,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Route pour corriger les QR codes incohérents  
+  app.post("/api/admin/fix-qr-codes", authenticateToken, async (req, res) => {
+    try {
+      const tables = await storage.getTables();
+      let fixedCount = 0;
+      
+      for (const table of tables) {
+        // Vérifier si le QR code contient "/menu/" au lieu de "/table/"
+        if (table.qrCode && table.qrCode.includes('/menu/')) {
+          const correctQrCode = table.qrCode.replace('/menu/', '/table/');
+          await storage.updateTable(table.id, { qrCode: correctQrCode });
+          fixedCount++;
+        }
+      }
+      
+      res.json({ 
+        message: `Fixed ${fixedCount} QR codes`,
+        fixed: fixedCount,
+        total: tables.length 
+      });
+    } catch (error) {
+      console.error("Error fixing QR codes:", error);
+      res.status(500).json({ message: "Failed to fix QR codes" });
+    }
+  });
+
   // Configuration routes
   app.get("/api/config", (req, res) => {
     try {

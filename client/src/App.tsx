@@ -115,9 +115,14 @@ function Router() {
         </PublicRoute>
       </Route>
       
-      {/* Customer menu route (public, no auth required) */}
+      {/* Customer menu routes (public, no auth required) */}
       <Route path="/menu/:tableNumber">
         <CustomerMenu />
+      </Route>
+      
+      {/* QR Code route - redirects to menu */}
+      <Route path="/table/:tableNumber">
+        {(params) => <Redirect to={`/menu/${params.tableNumber}`} />}
       </Route>
 
       {/* Super Admin routes (separate system) */}
