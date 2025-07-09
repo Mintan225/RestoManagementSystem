@@ -764,6 +764,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Route pour regénérer TOUS les QR codes avec le bon format
+  app.put("/api/admin/regenerate-qr-codes", authenticateToken, async (req, res) => {
+    try {
+      const tables = await storage.getTables();
+      let updatedCount = 0;
+      
+      for (const table of tables) {
+        // Regénérer QR code avec format correct /table/
+        const correctQrCode = `https://${req.headers.host}/table/${table.number}`;
+        await storage.updateTable(table.id, { qrCode: correctQrCode });
+        updatedCount++;
+      }
+      
+      res.json({ 
+        message: `Regenerated ${updatedCount} QR codes`,
+        updated: updatedCount,
+        total: tables.length 
+      });
+    } catch (error) {
+      console.error("Error regenerating QR codes:", error);
+      res.status(500).json({ message: "Failed to regenerate QR codes" });
+    }
+  });
+
   // Configuration routes
   app.get("/api/config", (req, res) => {
     try {

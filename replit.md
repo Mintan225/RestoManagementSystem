@@ -172,6 +172,12 @@ Changelog:
 - July 09, 2025. Added frontend route `/table/:tableNumber` that redirects to `/menu/:tableNumber` for consistent user experience
 - July 09, 2025. Created API endpoint `/api/admin/fix-qr-codes` to automatically correct existing QR codes with wrong format
 - July 09, 2025. Applied QR code fix to all future table generations - all new tables will have correct `/table/` format
+- July 09, 2025. **CRITICAL MANAGER INTERFACE FIX** - Resolved table display confusion where manager saw database IDs instead of table numbers
+- July 09, 2025. Fixed OrderItem component to display actual table numbers (1, 2, 3...) instead of internal database IDs (10, 14, 18...)
+- July 09, 2025. Updated order search functionality to work with display table numbers for intuitive staff filtering
+- July 09, 2025. Corrected receipt generation to use proper table numbers for customer documentation
+- July 09, 2025. Added API endpoint `/api/admin/regenerate-qr-codes` for global QR code management and updates
+- July 09, 2025. Enhanced QR code management interface with bulk regeneration capabilities for all existing tables
 ```
 
 ## User Preferences

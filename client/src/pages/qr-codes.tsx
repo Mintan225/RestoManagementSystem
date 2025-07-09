@@ -69,31 +69,22 @@ export default function QRCodes() {
 
   const regenerateAllMutation = useMutation({
     mutationFn: async () => {
-      // Update all tables with correct QR codes using /table/ format
-      const updatePromises = tables.map(async (table: any) => {
-        const qrData = generateTableQRData(table.number);
-        
-        const response = await fetch(`/api/tables/${table.id}`, {
-          method: "PUT",
-          headers: authService.getAuthHeaders(),
-          body: JSON.stringify({
-            qrCode: qrData,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to update table ${table.number}`);
-        }
-
-        return response.json();
+      // Utiliser l'API de régénération complète
+      const response = await fetch("/api/admin/regenerate-qr-codes", {
+        method: "PUT",
+        headers: authService.getAuthHeaders(),
       });
 
-      await Promise.all(updatePromises);
+      if (!response.ok) {
+        throw new Error("Failed to regenerate QR codes");
+      }
+
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Succès",
-        description: "Tous les QR codes ont été régénérés",
+        description: `${data.updated || 'Tous les'} QR codes ont été régénérés avec le bon format`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
     },
