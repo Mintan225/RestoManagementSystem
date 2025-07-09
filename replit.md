@@ -167,6 +167,11 @@ Changelog:
 - July 08, 2025. System ready for production deployment with complete functionality
 - July 08, 2025. Fixed super admin login issue by replacing apiRequest with native fetch for reliable authentication
 - July 08, 2025. Added deployment update guide for applying fixes to already deployed systems
+- July 09, 2025. **CRITICAL QR CODE ROUTING FIX** - Resolved issue where scanning table 8 QR code displayed table 4 menu
+- July 09, 2025. Updated QR code generation to use `/table/:tableNumber` format instead of `/menu/:tableNumber` for proper routing
+- July 09, 2025. Added frontend route `/table/:tableNumber` that redirects to `/menu/:tableNumber` for consistent user experience
+- July 09, 2025. Created API endpoint `/api/admin/fix-qr-codes` to automatically correct existing QR codes with wrong format
+- July 09, 2025. Applied QR code fix to all future table generations - all new tables will have correct `/table/` format
 ```
 
 ## User Preferences

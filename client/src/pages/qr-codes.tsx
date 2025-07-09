@@ -69,7 +69,7 @@ export default function QRCodes() {
 
   const regenerateAllMutation = useMutation({
     mutationFn: async () => {
-      // Update all tables with new QR codes
+      // Update all tables with correct QR codes using /table/ format
       const updatePromises = tables.map(async (table: any) => {
         const qrData = generateTableQRData(table.number);
         
