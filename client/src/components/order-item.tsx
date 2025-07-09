@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/currency";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { authService } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -54,6 +54,14 @@ const paymentStatusConfig = {
 export function OrderItem({ order }: OrderItemProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Récupérer les tables pour trouver le numéro de table correspondant à l'ID
+  const { data: tables = [] } = useQuery({
+    queryKey: ["/api/tables"],
+    staleTime: 5 * 60 * 1000, // Cache 5 minutes
+  });
+  
+  const tableNumber = tables.find((table: any) => table.id === order.tableId)?.number || order.tableId;
 
   const updateOrderMutation = useMutation({
     mutationFn: async ({ status }: { status: string }) => {
@@ -112,7 +120,7 @@ export function OrderItem({ order }: OrderItemProps) {
       orderId: order.id,
       customerName: order.customerName || 'Client',
       customerPhone: order.customerPhone,
-      tableNumber: order.tableId,
+      tableNumber: tableNumber,
       items: order.orderItems.map(item => ({
         name: item.product.name,
         quantity: item.quantity,
@@ -170,7 +178,7 @@ export function OrderItem({ order }: OrderItemProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <p className="text-sm text-gray-600">
-              <strong>Table:</strong> {order.tableId}
+              <strong>Table:</strong> {tableNumber}
             </p>
             {order.customerName && (
               <p className="text-sm text-gray-600">

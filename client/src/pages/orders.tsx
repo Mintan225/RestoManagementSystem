@@ -19,6 +19,12 @@ export default function Orders() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Récupérer les tables pour la correspondance ID → numéro
+  const { data: tables = [] } = useQuery({
+    queryKey: ["/api/tables"],
+    staleTime: 5 * 60 * 1000, // Cache 5 minutes
+  });
+
   const { data: allOrders = [], isLoading } = useQuery({
     queryKey: ["/api/orders"],
     refetchInterval: 3000, // Mise à jour toutes les 3 secondes
@@ -65,11 +71,14 @@ export default function Orders() {
   });
 
   const filteredOrders = allOrders.filter((order: any) => {
+    // Trouver le numéro de table correspondant à l'ID
+    const tableNumber = tables.find((table: any) => table.id === order.tableId)?.number || order.tableId;
+    
     const matchesSearch = 
       order.id.toString().includes(searchTerm) ||
       order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerPhone?.includes(searchTerm) ||
-      order.tableId.toString().includes(searchTerm);
+      tableNumber.toString().includes(searchTerm);
 
     if (activeTab === "all") return matchesSearch;
     if (activeTab === "active") return matchesSearch && order.status !== "completed" && order.status !== "cancelled";
