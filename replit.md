@@ -178,6 +178,14 @@ Changelog:
 - July 09, 2025. Corrected receipt generation to use proper table numbers for customer documentation
 - July 09, 2025. Added API endpoint `/api/admin/regenerate-qr-codes` for global QR code management and updates
 - July 09, 2025. Enhanced QR code management interface with bulk regeneration capabilities for all existing tables
+- July 11, 2025. **CRITICAL DASHBOARD UPDATE FIX** - Resolved issue where "tables occupées" status didn't update in real-time
+- July 11, 2025. Implemented automatic table status management: "available" → "occupied" when orders created, "available" when completed  
+- July 11, 2025. Added real-time dashboard refresh (3-5 seconds) with double calculation system for occupied tables accuracy
+- July 11, 2025. Created intelligent table status updates considering multiple orders per table scenarios
+- July 11, 2025. **NEW FEATURE: Order Notification System** - Added red notification bubble on "Commandes" tab in sidebar
+- July 11, 2025. Implemented real-time notification counter showing pending orders count with bounce animation
+- July 11, 2025. Added automatic notification dismissal when staff clicks on orders tab or when orders are processed
+- July 11, 2025. Enhanced staff workflow with visual alerts for incoming orders requiring counter attention
 ```
 
 ## User Preferences

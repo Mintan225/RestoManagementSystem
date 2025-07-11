@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { authService } from "@/lib/auth";
+import { useNewOrdersCount } from "@/hooks/useNewOrdersCount";
 import {
   LayoutDashboard,
   Package,
@@ -75,10 +76,18 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const [location] = useLocation();
   const user = authService.getUser();
+  const { newOrdersCount, markAsViewed } = useNewOrdersCount();
 
   const handleLogout = () => {
     authService.logout();
     window.location.href = "/login";
+  };
+
+  const handleOrdersClick = () => {
+    // Marquer les nouvelles commandes comme vues quand on clique sur l'onglet
+    if (newOrdersCount > 0) {
+      markAsViewed();
+    }
   };
 
   return (
@@ -99,12 +108,15 @@ export function Sidebar({ className }: SidebarProps) {
       <nav className="flex-1 px-2 mt-8 space-y-1">
         {navigation.map((item) => {
           const isActive = location === item.href;
+          const isOrdersTab = item.href === "/orders";
+          
           return (
             <Link
               key={item.name}
               href={item.href}
+              onClick={isOrdersTab ? handleOrdersClick : undefined}
               className={cn(
-                "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors relative",
                 isActive
                   ? "bg-primary text-white"
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -117,6 +129,13 @@ export function Sidebar({ className }: SidebarProps) {
                 )}
               />
               {item.name}
+              
+              {/* Bulle de notification pour les nouvelles commandes */}
+              {isOrdersTab && newOrdersCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-6 w-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-bounce">
+                  {newOrdersCount > 9 ? '9+' : newOrdersCount}
+                </span>
+              )}
             </Link>
           );
         })}
