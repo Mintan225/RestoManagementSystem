@@ -7,6 +7,7 @@ yarn-error.log*
 # Production builds
 dist/
 build/
+out/ # Ajouté : dossier de sortie commun pour certains outils
 
 # Environment variables
 .env
@@ -49,3 +50,7 @@ replit.nix
 # Temporary files
 tmp/
 temp/
+
+# Node.js/TypeScript specific caches
+.npm/
+*.tsbuildinfo
