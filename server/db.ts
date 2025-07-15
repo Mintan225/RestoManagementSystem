@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 // import ws from "ws"; // <--- REMOVE OR COMMENT OUT THIS LINE
-import * as schema from "./schema";
+import * as schema from "../shared/schema";
 
 // neonConfig.webSocketConstructor = ws; // <--- REMOVE OR COMMENT OUT THIS LINE
 
