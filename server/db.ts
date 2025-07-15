@@ -1,9 +1,11 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-// import ws from "ws"; // <--- REMOVE OR COMMENT OUT THIS LINE
-import * as schema from "../shared/schema";
+import pkg from 'pg'; // <-- CHANGÉ ICI : Importation par défaut de 'pg'
+const { Pool } = pkg; // <-- CHANGÉ ICI : Déstructuration de Pool depuis l'objet importé
 
-// neonConfig.webSocketConstructor = ws; // <--- REMOVE OR COMMENT OUT THIS LINE
+// import ws from "ws"; // Déjà commenté/supprimé, c'est bien
+import * as schema from "../shared/schema"; // Chemin corrigé, c'est bien
+
+// neonConfig.webSocketConstructor = ws; // Déjà commenté/supprimé, c'est bien
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,9 +13,9 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ 
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  // Add SSL configuration for Render if your DATABASE_URL includes sslmode=require
+  // Ajout de la configuration SSL, crucial pour Render en production
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 export const db = drizzle({ client: pool, schema });
